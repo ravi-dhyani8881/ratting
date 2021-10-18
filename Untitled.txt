@@ -1,0 +1,25 @@
+title This is a title
+
+actor #green:0.5 user
+
+bottomparticipants
+
+participant API-Gateway
+participant Java-gateway
+participant API-360-Engine
+
+user->API-Gateway: Invoking api \n resource
+activate API-Gateway
+
+API-Gateway->Java-gateway:Incoming request \n to java gateway
+
+alt AWS instance
+Java-gateway->API-360-Engine:Invoking API-360
+
+API-360-Engine->Java-gateway: API response
+end 
+
+Java-gateway->API-Gateway:API response
+
+
+API-Gateway->user: API response
