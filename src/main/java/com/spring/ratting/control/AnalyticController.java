@@ -1,7 +1,10 @@
 package com.spring.ratting.control;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -32,6 +34,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.spring.ratting.domain.InnerAnalytic;
+import com.spring.ratting.domain.InnerReviews;
 import com.spring.ratting.service.CommonDocumentService;
 import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.util.SolrUrls;
@@ -61,11 +65,13 @@ public class AnalyticController {
 	@Autowired
 	ValidationService validationService;
 	
-    String url=SolrUrls.contentUrl;
+    String contentUrl=SolrUrls.contentUrl;
     
     String reviewUrl=SolrUrls.reviewUrl;
     
     String likeUrl=SolrUrls.likelUrl;
+    
+    String helpFullUrl=SolrUrls.helpFullUrl;    
 		
 	@ApiOperation(value = "This service used to add content")
 	@RequestMapping(value="/addContent" , method=RequestMethod.POST)
@@ -89,7 +95,7 @@ public class AnalyticController {
 		try {
 			payload.put("ID", contentId);
 			payload.put("custId", userId);
-			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, url);
+			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, contentUrl);
 			
 			if(apiResponse instanceof Exception )
 			{
@@ -128,7 +134,7 @@ public class AnalyticController {
 		
 		try {
 			contentId=(String) payload.get("ID");
-			Object apiResponse =commonDocumentService.advanceQueryByTemplate("ID:"+contentId, url);
+			Object apiResponse =commonDocumentService.advanceQueryByTemplate("ID:"+contentId, contentUrl);
 					
 			if(apiResponse instanceof Exception )
 			{
@@ -139,7 +145,7 @@ public class AnalyticController {
 				return model.addAttribute("Message", new ResponseMessage("No Unique ID to update", "Invalid ID"));
 			}else {
 				SolrDocument solrDocument = ((QueryResponse) apiResponse).getResults().get(0);
-				apiResponse =commonDocumentService.updateDocumentByTemplate(this.createDoc(payload, solrDocument), url) ;	
+				apiResponse =commonDocumentService.updateDocumentByTemplate(this.createDoc(payload, solrDocument), contentUrl) ;	
 			}			
 			return model.addAttribute("Message", new ResponseMessage("Content updated Sucesfully", "Added",contentId));
 		}catch (Exception e) {
@@ -163,13 +169,20 @@ public class AnalyticController {
 			HttpServletRequest request, HttpServletResponse response
 			) {
 		ModelMap model=new ModelMap();
-		Object apiResponse,reviewsResponse,likeResponse=null;
+		Object contentResponse,reviewsResponse,likeResponse,helpFullResponse=null;
 		
 		
-		Object apiDetails=null;
-		String reviewDetailsQuery=null;
+	//	Object apiDetails=null;
+	//	String reviewDetailsQuery=null;
 		
-		String reviewQuery=null;
+	//	String reviewQuery=null;
+		
+	//	Analytic analytic = null;
+		
+
+		
+		List<InnerAnalytic> innerAnalyticObjectList=new ArrayList<InnerAnalytic>();
+		
 		
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
@@ -189,9 +202,13 @@ public class AnalyticController {
 			searchCriteria.put("fq", fq);
 			searchCriteria.put("sort", sort);
 			
-		//	reviewQuery=Utility.getQuery("reviewContentId:"+, userId);
 			
-			 apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+		//	List<Analytic> ana=List<Analytic>();
+				
+			 contentResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, contentUrl);
+			 
+			 
+			 
 			 searchCriteria.put("q", "{!join from=ID to=reviewContentId fromIndex=content}"+query);
 			 
 			 reviewsResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
@@ -200,42 +217,87 @@ public class AnalyticController {
 			 
 			 likeResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, likeUrl);
 			 
-			 if(apiResponse instanceof Exception )
+			 
+			 searchCriteria.put("q", "{!join from=ID to=contentId fromIndex=content}"+query);
+			 
+			 helpFullResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, helpFullUrl);
+			 
+			 
+			 if(contentResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
 			}else {
 				
-//				((QueryResponse) apiResponse).getResults().forEach((K)-> {
-//					System.out.println("->"+K);							
-//				});
-				
-			//	System.out.println("e->"+((QueryResponse) apiResponse).getResults().stream().map(n->n));	
+			//	model.addAttribute("content",((QueryResponse) apiResponse).getResults());
 				
 				
 				
-			//	((QueryResponse) apiResponse).getResults().stream().map(n->n);
-				
-			//	return model;
-				
- //				 To check number of review in Content
-//				 apiDetailsQuery="reviewContentId:"+((QueryResponse) apiResponse).getResults().get;
-//				 apiDetails=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
-		//	return	model.addAttribute("reviews",((QueryResponse) reviewsResponse).getResults());
+			((QueryResponse) contentResponse).getResults().forEach((C)-> {
 			
-		//	return	model.addAttribute("result",((QueryResponse) apiResponse).getResults()).addAttribute("reviews", ((QueryResponse) reviewsResponse).getResults());
+			
+				System.out.println("---content---->"+C.get("name"));
+			
+				InnerAnalytic innerAnalytic=new InnerAnalytic(null,null,null);
+				innerAnalytic.setContent(C);
 				
-			//	return model.addAttribute("result",((QueryResponse) apiResponse).getResults());
 				
-				model.addAttribute("content",((QueryResponse) apiResponse).getResults());
+				
+				((QueryResponse) reviewsResponse).getResults().forEach((R)-> {
+					
+					if(C.get("ID").equals(R.get("reviewContentId"))) {
+						innerAnalytic.setReviews(R);
+						innerAnalytic.setInnerReviews(new InnerReviews(R));
+						
+					}
+				
+				});		
+				innerAnalyticObjectList.add(innerAnalytic);
+			});
+				
+				
+				
+					
+			//		searchCriteria.put("q","reviewContentId:"+K.get("ID"));
+			//		searchCriteria.put("facet","on");
+			//		searchCriteria.put("facet.field","reviewRatting");
+					
+					 
+			//		 Object reviewsLocalResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+				
+				
+				
+				
+			
+			
+			
+			
+			
+				
+				
+				
+				
+				model.addAttribute("content",((QueryResponse) contentResponse).getResults());
 				
 				model.addAttribute("reviews",((QueryResponse) reviewsResponse).getResults());
 				
-				return model.addAttribute("like",((QueryResponse) likeResponse).getResults());
+				model.addAttribute("like",((QueryResponse) likeResponse).getResults());
+				
+				model.addAttribute("helpFull",((QueryResponse) helpFullResponse).getResults());
+				
+				
+				
 			}
+			 
 		}
+	//	model.addAttribute(innerAnalyticObjectList);
+		 return model;
 	}
 	
+
+
+
+
 	@ApiOperation(value = "This service delete content by query")
 	@RequestMapping(value="/deleteByQuery" , method=RequestMethod.DELETE)
 	public ModelMap  deleteByQuery(@RequestParam(name = "query", required = true) String query , 
@@ -255,7 +317,7 @@ public class AnalyticController {
 			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
 		}
 		
-		Object apiResponse = commonDocumentService.deleteDocumentByTemplate(query,url);
+		Object apiResponse = commonDocumentService.deleteDocumentByTemplate(query,contentUrl);
 		
 		if(apiResponse instanceof Exception )
 		{
@@ -349,4 +411,9 @@ public class AnalyticController {
 		return payload;
 	}
 
+	
+	
+	
+	
+	
 }
