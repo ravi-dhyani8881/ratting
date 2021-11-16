@@ -2,25 +2,27 @@ package com.spring.ratting.util;
 
 public interface SolrUrls {
 
-	static String solrAnalyticUrl = "http://localhost:8983/solr/analytic";
+	static String baseUrl="http://ravi-solr-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/";
 	
-	static String helpFullUrl = "http://localhost:8983/solr/helpFull";
+	static String solrAnalyticUrl = baseUrl+"analytic";
 	
-	static String likelUrl = "http://localhost:8983/solr/like";
+	static String helpFullUrl = baseUrl+"helpFull";
 	
-	static String solrCommentRattingAnalyticUrl = "http://localhost:8983/solr/commentRattingAnalytic2";
+	static String likelUrl = baseUrl+"like";
+	
+	static String solrCommentRattingAnalyticUrl = baseUrl+"commentRattingAnalytic2";
 
-	static String replyUrl = "http://localhost:8983/solr/reply";	
+	static String replyUrl = baseUrl+"reply";	
 	
-	static String userUrl = "http://localhost:8983/solr/users";	
+	static String userUrl = baseUrl+"users";	
 	
 	static String verifyUserUrl = "http://localhost:8080/users/verifyUser?userActivationKey=";	
 	
-	static String contentUrl = "http://localhost:8983/solr/content";
+	static String contentUrl = baseUrl+"content";
 	
-	static String reviewUrl = "http://localhost:8983/solr/review";	
+	static String reviewUrl = baseUrl+"review";	
 	
-	static String protocolUrl = "http://localhost:8983/solr/msgProtocol";
+	static String protocolUrl = baseUrl+"msgProtocol";
 	
-	static String apiKeyUrl = "http://localhost:8983/solr/apiKey";	
+	static String apiKeyUrl = baseUrl+"apiKey";	
 }
