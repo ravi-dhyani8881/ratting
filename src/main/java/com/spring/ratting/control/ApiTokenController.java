@@ -56,15 +56,15 @@ public class ApiTokenController {
 		if(apiResponse instanceof RemoteSolrException )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", ((RemoteSolrException) apiResponse).getMessage()));	
+			return model.addAttribute("Message", new ResponseMessage("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500 ));	
 		}else if(apiResponse instanceof Exception) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));	
+			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));	
 		}
 			
 		else if(((QueryResponse) apiResponse).getResults().size() ==0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Bad request", "user not exits"));
+			return model.addAttribute("Message", new ResponseMessage("Bad request user not exits", 404));
 		}else {
 			try {
 				payload.remove("userId");
@@ -77,7 +77,7 @@ public class ApiTokenController {
 				if(apiResponse instanceof Exception )
 				{
 					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+					return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
 				}
 				
 				if(((QueryResponse) apiResponse).getResults().size() >0) {
@@ -95,7 +95,7 @@ public class ApiTokenController {
 				e.printStackTrace();
 			}
 			model.addAttribute("apiKey", apiKey);
-			return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", "Added"));
+			return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201));
 		}	
 	}
 }

@@ -5,15 +5,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.SolrResponseBase;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.util.NamedList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -53,7 +51,7 @@ public class UserController {
 	
 	// Need to check duplicate email adress in old implemetation in git
 	
-	@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+	@RequestMapping(value = "/userSignUp", method = RequestMethod.POST)
 	public ModelMap addNew(@RequestBody Map<String, Object> payload, HttpServletResponse response) {
 		ModelMap model = new ModelMap();
 		String userId=Utility.getUniqueId();		
@@ -66,9 +64,9 @@ public class UserController {
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
 			}
-			model.addAttribute("Message", new ResponseMessage("User added Sucesfully. Please activate through email activation code.", "Added"));					
+			model.addAttribute("Message", new ResponseMessage("User added Sucesfully. Please activate through email activation code.", 201,null,null,null,null,"Added"));					
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -103,15 +101,15 @@ public class UserController {
 		
 		if (apiResponse.getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Invalid User", "Error"));
+			return model.addAttribute("Message", new ResponseMessage("Invalid User", 401));
 		} 
 		else if(apiResponse.getResults().get(0).get("userActivationKey").equals("Activated")) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("User already conformed", "Error"));
+			return model.addAttribute("Message", new ResponseMessage("User already conformed", 200));
 		}
 		else if(!apiResponse.getResults().get(0).get("userActivationKey").equals(activationKey)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", "Error"));
+			return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", 401));
 		}
 		
 			SolrDocument solrDocument = apiResponse.getResults().get(0);
@@ -121,7 +119,7 @@ public class UserController {
 			commonDocumentService.updateDocumentByTemplate(solrDocument, url) ;
 			model.addAttribute("userId",userId);
 					
-			return model.addAttribute("Message", new ResponseMessage("User conformation Sucessful", "conformed"));
+			return model.addAttribute("Message", new ResponseMessage("User conformation Sucessful", 200));
 		} 
 	
 	@RequestMapping(value = "/changeUserStatus", method = RequestMethod.GET)
@@ -137,7 +135,7 @@ public class UserController {
 		QueryResponse queryResponse = solrRatting.serachDocument(SolrUrls.userUrl, "ID:" + userId);
 		
 		if (queryResponse.getResults().size() == 0) {
-			return model.addAttribute("Message", new ResponseMessage("Invalid User id", "Error"));
+			return model.addAttribute("Message", new ResponseMessage("Invalid User id", 401));
 		}
 		SolrDocument solrDoc = queryResponse.getResults().get(0);
 		SolrInputDocument document = new SolrInputDocument();
@@ -156,7 +154,7 @@ public class UserController {
 			document.addField("userActivationKey", (String) solrDoc.get("userActivationKey"));
 
 			solrRatting.updateDocument(SolrUrls.userUrl, document);
-			return model.addAttribute("Message", new ResponseMessage("User status updated Sucesfully", "Status Changed"));
+			return model.addAttribute("Message", new ResponseMessage("User status updated Sucesfully", 200));
 		} catch (Exception e) {
 			return model.addAttribute("Message", e.getMessage());
 		}
@@ -178,7 +176,7 @@ public class UserController {
 			QueryResponse queryResponse = solrRatting.serachDocument(SolrUrls.userUrl, "ID:" + userId);
 			
 			if (queryResponse.getResults().size() == 0) {
-				return model.addAttribute("Message", new ResponseMessage("Invalid User id", "Error"));
+				return model.addAttribute("Message", new ResponseMessage("Invalid User id", 401));
 			}
 			SolrDocument solrDoc = queryResponse.getResults().get(0);
 			SolrInputDocument document = new SolrInputDocument();
@@ -199,7 +197,7 @@ public class UserController {
 			solrRatting.updateDocument(SolrUrls.userUrl, document);
 
 			return model.addAttribute("Message", new ResponseMessage(
-					"User updated Sucesfully.", "UPDATE"));
+					"User updated Sucesfully.", 200));
 		} catch (Exception e) {
 			return model.addAttribute("Message", e.getMessage());
 		}
@@ -223,11 +221,32 @@ public class UserController {
 		String query = "methodName:" + (String) payload.get("methodName");
 		if (commonDocumentService.SearchByQuery(query, protocolUrl).getResults().getNumFound() > 0) {
 			System.out.println("Already exist");
-			return model.addAttribute("Message", new ResponseMessage("Method name already added", "AlreadyExist"));
+			return model.addAttribute("Message", new ResponseMessage("Method name already added", 403));
 		} else {
 			String methodId = commonDocumentService.addDocument(payload, protocolUrl);
-			return model.addAttribute("Message", new ResponseMessage("Method added Sucesfully", "Added", methodId));
+			return model.addAttribute("Message", new ResponseMessage("Method added Sucesfully", 201));
 		}
+	}
+	
+	@RequestMapping(value = "/user-authentication", method = RequestMethod.POST)
+	public ModelMap userAuth(@RequestBody Map<String, Object> payload) {
+		// Example payload in body
+//		{
+//		"reviewComments":"Hello",
+//		"reviewRatting":"1",
+//		"reviewUserId":"1",
+//		"reviewContentId":"1"
+//		}
+//	
+		ModelMap model = new ModelMap();
+		//payload.containsKey("reviewUserId");
+		
+	//	Object apiResponse =commonDocumentService.advanceQueryByTemplate("ID:"+contentId, url);
+		
+		
+		System.out.println("----->" + payload.containsKey("email"));
+		model.addAttribute("name","Ravi");
+	return model;	
 	}
 	
 }

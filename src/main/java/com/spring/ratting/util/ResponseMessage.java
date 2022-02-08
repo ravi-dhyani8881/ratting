@@ -2,13 +2,15 @@ package com.spring.ratting.util;
 
 import org.apache.solr.common.SolrDocumentList;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseMessage {
 
 	private String responseMessage;
 	
-	private String responseCode;
+	@JsonProperty("statusCode")
+	private int responseCode;
 	
 	private Long numFound;
 	
@@ -18,29 +20,31 @@ public class ResponseMessage {
 	
 	private String query;
 	
+	private String responseType="error";
 	
 	
-	public ResponseMessage(String responseMessage, String responseCode, Long numFound, String query) {
+	
+	public ResponseMessage(String responseMessage, int responseCode, Long numFound, String query) {
 		super();
 		this.responseMessage = responseMessage;
 		this.responseCode = responseCode;
 		this.numFound = numFound;
 		this.query = query;
 	}
-	public ResponseMessage(String responseMessage, String responseCode, String iD) {
+	public ResponseMessage(String responseMessage, int responseCode, String iD) {
 		super();
 		this.responseMessage = responseMessage;
 		this.responseCode = responseCode;
 		this.ID = iD;
 	}
-	public ResponseMessage(String responseMessage, String responseCode, Long numFound, SolrDocumentList document) {
+	public ResponseMessage(String responseMessage, int responseCode, Long numFound, SolrDocumentList document) {
 		super();
 		this.responseMessage = responseMessage;
 		this.responseCode = responseCode;
 		this.numFound = numFound;
 		this.document = document;
 	}
-	public ResponseMessage(String responseMessage, String responseCode) {
+	public ResponseMessage(String responseMessage, int responseCode) {
 		super();
 		this.responseMessage = responseMessage;
 		this.responseCode = responseCode;
@@ -50,6 +54,17 @@ public class ResponseMessage {
 		this.numFound = recordFound;
 		this.document = document;
 	}
+	public ResponseMessage(String responseMessage, int responseCode, Long numFound, SolrDocumentList document,
+			String iD, String query, String responseType) {
+		super();
+		this.responseMessage = responseMessage;
+		this.responseCode = responseCode;
+		this.numFound = numFound;
+		this.document = document;
+		ID = iD;
+		this.query = query;
+		this.responseType = responseType;
+	}
 	public String getResponseMessage() {
 		return responseMessage;
 	}
@@ -58,11 +73,11 @@ public class ResponseMessage {
 		this.responseMessage = responseMessage;
 	}
 
-	public String getResponseCode() {
+	public int getResponseCode() {
 		return responseCode;
 	}
 
-	public void setResponseCode(String responseCode) {
+	public void setResponseCode(int responseCode) {
 		this.responseCode = responseCode;
 	}
 
@@ -98,5 +113,11 @@ public class ResponseMessage {
 	}
 	public void setQuery(String query) {
 		this.query = query;
+	}
+	public String getResponseType() {
+		return responseType;
+	}
+	public void setResponseType(String responseType) {
+		this.responseType = responseType;
 	}	
 }
