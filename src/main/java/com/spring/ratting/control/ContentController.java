@@ -201,6 +201,64 @@ public class ContentController {
 		}
 	}
 	
+	@ApiOperation(value = "This service used to search content by query")
+	@RequestMapping(value="/searchContentById" , method=RequestMethod.GET)
+	public ModelMap  searchContentById(@RequestParam(name = "contentId", required = true) String query,
+			@RequestParam(name = "rows",  defaultValue = "8", required = false) String rows ,
+			@RequestParam(name = "start",defaultValue = "0", required = false) String start,
+			@RequestParam(name = "fl" ,defaultValue = "" , required = false) String fl ,
+			@RequestParam(name = "fq" ,defaultValue = "" , required = false) String fq ,
+			//default value asc|desc
+			@RequestParam(name = "sort" ,defaultValue = "" , required = false) String sort,
+			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
+			@RequestHeader(name="X-USER-ID", required=true) String userId,
+		
+			HttpServletRequest request, HttpServletResponse response
+			) {
+		ModelMap model=new ModelMap();
+		Object apiResponse=null;
+		Object apiDetails=null;
+		String reviewDetailsQuery=null;
+		
+		if(validationService.validateApiKey(apiKey, userId) == 500 )
+		{	
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			 
+		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+		}else {
+			query=Utility.getQuery(query, userId);
+			Map<String, String> searchCriteria=new HashMap<String,String>(); 
+			searchCriteria.put("q", query);
+			searchCriteria.put("rows", rows);
+			searchCriteria.put("start", start);
+			searchCriteria.put("fl", fl);
+			searchCriteria.put("fq", fq);
+			searchCriteria.put("sort", sort);
+			
+			 apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+			 if(apiResponse instanceof Exception )
+			{
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+			}else {
+				
+				((QueryResponse) apiResponse).getResults().forEach((K)-> {
+					System.out.println(K.get("ID"));							
+				});
+				
+ //				 To check number of review in Content
+//				 apiDetailsQuery="reviewContentId:"+((QueryResponse) apiResponse).getResults().get;
+//				 apiDetails=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+				
+			//	return model.addAttribute("result",((QueryResponse) apiResponse).getResults().get(0));
+				return model.addAllAttributes(((QueryResponse) apiResponse).getResults().get(0))	;
+			}
+		}
+	}
+	
 	@ApiOperation(value = "This service delete content by query")
 	@RequestMapping(value="/deleteByQuery" , method=RequestMethod.DELETE)
 	public ModelMap  deleteByQuery(@RequestParam(name = "query", required = true) String query , 

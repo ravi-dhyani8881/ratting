@@ -213,7 +213,7 @@ public class AnalyticController {
 			 
 			 reviewsResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
 			
-			 searchCriteria.put("q", "{!join from=ID to=contentId fromIndex=content}"+query);
+			 searchCriteria.put("q", "{!join from=ID to=contentId fromIndex=}"+query);
 			 
 			 likeResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, likeUrl);
 			 
