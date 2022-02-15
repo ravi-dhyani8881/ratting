@@ -203,7 +203,7 @@ public class ContentController {
 	
 	@ApiOperation(value = "This service used to search content by query")
 	@RequestMapping(value="/searchContentById" , method=RequestMethod.GET)
-	public ModelMap  searchContentById(@RequestParam(name = "contentId", required = true) String query,
+	public ModelMap  searchContentById(@RequestParam(name = "Id", required = true) String query,
 			@RequestParam(name = "rows",  defaultValue = "8", required = false) String rows ,
 			@RequestParam(name = "start",defaultValue = "0", required = false) String start,
 			@RequestParam(name = "fl" ,defaultValue = "" , required = false) String fl ,
