@@ -341,6 +341,24 @@ public class CommentRattingController implements SolrUrls {
 	
 	}
 
+	@RequestMapping(value="/findAllReviewOnContentOnly" , method=RequestMethod.GET)
+	public ModelMap findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
+	@RequestParam(name = "noOfRecords", required = true) 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();
+		String query="reviewContentId:"+contentId;
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
+		model.addAttribute( "reviews",queryResponse.getResults());
+		return model;
+	
+	}
+	
 	@RequestMapping(value="/add" , method=RequestMethod.POST)
 	public ModelMap reviewsRating(@RequestBody Map<String, Object> payload,HttpServletRequest request, HttpServletResponse response,
 			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
