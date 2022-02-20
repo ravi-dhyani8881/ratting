@@ -254,7 +254,9 @@ public class ContentController {
 //				 apiDetails=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
 				
 			//	return model.addAttribute("result",((QueryResponse) apiResponse).getResults().get(0));
-				return model.addAllAttributes(((QueryResponse) apiResponse).getResults())	;
+				return model.addAllAttributes(((QueryResponse) apiResponse).getResults().get(0))	;
+			//return	model.addAttribute(((QueryResponse) apiResponse).getResults().get(0));
+			//	return model.addAllAttributes(((QueryResponse) apiResponse).getResults())	;
 			}
 		}
 	}
