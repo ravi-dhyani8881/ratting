@@ -354,7 +354,8 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
 		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
-		model.addAttribute( "reviews",queryResponse.getResults());
+		model.addAttribute(queryResponse.getResults());
+		//model.addAllAttributes(queryResponse.getResults());
 		return model;
 	
 	}
