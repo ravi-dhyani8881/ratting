@@ -7,7 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
-
+import org.apache.solr.common.SolrDocumentList;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.ui.ModelMap;
@@ -26,6 +27,7 @@ import com.spring.ratting.util.Utility;
 import com.spring.ratting.validation.ValidationService;
 
 import io.swagger.annotations.Api;
+import net.minidev.json.JSONArray;
 
 @Api(value = "Review and ratting managment system", description = "Service used for operation for review and ratting")
 @RestController
@@ -342,7 +344,7 @@ public class CommentRattingController implements SolrUrls {
 	}
 
 	@RequestMapping(value="/findAllReviewOnContentOnly" , method=RequestMethod.GET)
-	public ModelMap findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
+	public Object[] findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
 	@RequestParam(name = "noOfRecords", required = true) 
 	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
 			) {
@@ -354,9 +356,16 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
 		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
-		model.addAttribute(queryResponse.getResults());
-		//model.addAllAttributes(queryResponse.getResults());
-		return model;
+	
+	
+		
+		 
+		
+		// model.putAll(model)
+		 
+		model.addAttribute("solr",queryResponse.getResults().toArray());
+	//	model.addAllAttributes(queryResponse.getResults());
+		return queryResponse.getResults().toArray();
 	
 	}
 	
