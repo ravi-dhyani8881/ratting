@@ -7,10 +7,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
-
+import org.apache.solr.common.SolrDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -365,6 +366,32 @@ public class CommentRattingController implements SolrUrls {
 		model.addAttribute("solr",queryResponse.getResults().toArray());
 	//	model.addAllAttributes(queryResponse.getResults());
 		return queryResponse.getResults().toArray();
+	
+	}
+	
+	@RequestMapping(value="/{reviewContentId}" , method=RequestMethod.GET)
+	public SolrDocument findOneReviewOnContentOnly(@PathVariable(required = false) String reviewContentId,
+	@RequestParam(name = "noOfRecords", required = true, defaultValue = "12") 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true, defaultValue = "0") int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();
+		String query="reviewContentId:"+reviewContentId;
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
+	
+	
+		
+		 
+		
+		// model.putAll(model)
+		 
+		model.addAttribute("solr",queryResponse.getResults().toArray());
+	//	model.addAllAttributes(queryResponse.getResults());
+		return queryResponse.getResults().get(0);
 	
 	}
 	
