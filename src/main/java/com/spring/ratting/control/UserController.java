@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -17,6 +18,7 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,6 +28,10 @@ import com.spring.ratting.solr.SolrConnection;
 import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.util.SolrUrls;
 import com.spring.ratting.util.Utility;
+import com.spring.ratting.validation.ValidationService;
+
+import io.swagger.annotations.ApiOperation;
+
 //import com.restagent.beans.EmailParameters;
 //import com.restagent.controller.Communication;
 //import com.restagent.controller.CommunicationImpl;
@@ -43,6 +49,9 @@ public class UserController {
 	
 	@Autowired
 	JavaMailSender javaMailSender;
+	
+	@Autowired
+	ValidationService validationService;
 	
 	String url=SolrUrls.userUrl;
 
@@ -248,5 +257,66 @@ public class UserController {
 		model.addAttribute("name","Ravi");
 	return model;	
 	}
+	
+	
+	
+	@ApiOperation(value = "This service used to search user by query")
+	@RequestMapping(value="/searchUserByQuery" , method=RequestMethod.GET)
+	public ModelMap  userSearchByQuery(@RequestParam(name = "query", required = true) String query,
+			@RequestParam(name = "rows",  defaultValue = "8", required = false) String rows ,
+			@RequestParam(name = "start",defaultValue = "0", required = false) String start,
+			@RequestParam(name = "fl" ,defaultValue = "" , required = false) String fl ,
+			@RequestParam(name = "fq" ,defaultValue = "" , required = false) String fq ,
+			//default value asc|desc
+			@RequestParam(name = "sort" ,defaultValue = "" , required = false) String sort,
+			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
+			@RequestHeader(name="X-USER-ID", required=true) String userId,
+		
+			HttpServletRequest request, HttpServletResponse response
+			) {
+		ModelMap model=new ModelMap();
+		Object apiResponse=null;
+		Object apiDetails=null;
+		String reviewDetailsQuery=null;
+		
+		if(validationService.validateApiKey(apiKey, userId) == 500 )
+		{	
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			 
+		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+		}else {
+			query=Utility.getQuery(query, userId);
+			Map<String, String> searchCriteria=new HashMap<String,String>(); 
+			searchCriteria.put("q", query);
+			searchCriteria.put("rows", rows);
+			searchCriteria.put("start", start);
+			searchCriteria.put("fl", fl);
+			searchCriteria.put("fq", fq);
+			searchCriteria.put("sort", sort);
+			
+			 apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+			 if(apiResponse instanceof Exception )
+			{
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+			}else {
+				
+				((QueryResponse) apiResponse).getResults().forEach((K)-> {
+					System.out.println(K.get("ID"));							
+				});
+				
+ //				 To check number of review in Content
+//				 apiDetailsQuery="reviewContentId:"+((QueryResponse) apiResponse).getResults().get;
+//				 apiDetails=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+				
+				return model.addAttribute("result",((QueryResponse) apiResponse).getResults());
+			}
+		}
+	}
+	
+	
 	
 }

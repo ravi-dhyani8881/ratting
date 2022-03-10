@@ -2,7 +2,7 @@ package com.spring.ratting.util;
 
 public interface SolrUrls {
 
-	static String baseUrl="http://localhost:8983/solr/";
+	static String baseUrl="http://192.168.1.104:8983/solr/";
 	
 	static String solrAnalyticUrl = baseUrl+"analytic";
 	
