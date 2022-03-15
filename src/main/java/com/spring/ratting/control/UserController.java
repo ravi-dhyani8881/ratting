@@ -288,7 +288,7 @@ public class UserController {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
 		}else {
-			query=Utility.getQuery(query, userId);
+		//	query=Utility.getQuery(query, userId);
 			Map<String, String> searchCriteria=new HashMap<String,String>(); 
 			searchCriteria.put("q", query);
 			searchCriteria.put("rows", rows);
@@ -305,7 +305,7 @@ public class UserController {
 			}else {
 				
 				((QueryResponse) apiResponse).getResults().forEach((K)-> {
-					System.out.println(K.get("ID"));							
+				//	System.out.println(K.get("ID"));							
 				});
 				
  //				 To check number of review in Content

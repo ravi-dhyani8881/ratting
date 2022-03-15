@@ -1,15 +1,30 @@
 package com.spring.ratting.control;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.hateoas.ExposesResourceFor;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+
+import org.springframework.http.MediaType;
+
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,12 +34,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import com.spring.ratting.service.CommonDocumentService;
 import com.spring.ratting.solr.SolrConnection;
 import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.util.SolrUrls;
 import com.spring.ratting.util.Utility;
 import com.spring.ratting.validation.ValidationService;
+
+
+
 
 import io.swagger.annotations.Api;
 
@@ -49,6 +68,9 @@ public class CommentRattingController implements SolrUrls {
 	
 	@Autowired
 	SolrConnection solrConnection;
+	
+	
+	
 	
     String reviewUrl=SolrUrls.reviewUrl;
     String contentUrl=SolrUrls.contentUrl;
@@ -366,6 +388,92 @@ public class CommentRattingController implements SolrUrls {
 		model.addAttribute("solr",queryResponse.getResults().toArray());
 	//	model.addAllAttributes(queryResponse.getResults());
 		return queryResponse.getResults().toArray();
+	
+	}
+	
+	
+	
+	
+	@RequestMapping(value="/findReviewAnalytic" , method=RequestMethod.GET)
+	public ModelMap findReviewAnalytic(@RequestParam(name = "contentId", required = true) String contentId,
+	@RequestParam(name = "noOfRecords", required = true) 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();	
+		String query="reviewContentId:"+contentId;
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		searchCriteria.put("facet", "true");
+		searchCriteria.put("facet.field", "reviewRatting");
+		
+	//	searchCriteria.put("facet.query", "*:*");
+
+		HttpHeaders headers = new HttpHeaders();		
+	    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+	    headers.set("X-API-Key", "486f334e-f894-46e8-9d72-7800f6ce1bb6");
+	    headers.set("X-USER-ID", "74a1932c-aa62-4ff1-9e75-2f0dbe9e5c57");
+	    HttpEntity <String> entity = new HttpEntity<String>(headers);
+		
+	//	Map<String, String> response2=resttemplate.exchange("http://192.168.1.101:8983/solr/review/select?facet.field=reviewRatting&facet.query=*%3A*&facet.sort=count&facet=true&fl=reviewRatting&q=reviewContentId%3A4&rows=1&start=0",HttpMethod.GET, entity,new ParameterizedTypeReference<Map<String, String>>() {}).getBody();
+
+	//	Map<String, String> response2= commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+		
+	   
+	    
+	    
+	//	searchCriteria.put("fl", "reviewRatting");
+	    QueryResponse queryResponse = null;
+	    List<FacetField>	ff2=null;
+	    
+	   queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+	    
+	   
+	
+	    
+		ff2=	queryResponse.getFacetFields();
+		FacetField	ff=	queryResponse.getFacetField("reviewRatting");
+		
+		
+		
+		System.out.println("----->"+ff2.get(0).getValues().get(1).getName());
+		
+		System.out.println("----->"+ff2.get(0).getValues().get(1).getCount());
+		
+		
+		Map<String, Long> fieldCounts = new HashMap<>();
+		
+		 List<FacetField> clusterFields =queryResponse.getFacetFields();
+		
+		 long average=0;
+		 List<String> clusterResponse = new ArrayList();
+		 
+			    FacetField clusterFacets = clusterFields.get(0);
+			    for (FacetField.Count clusterCount : clusterFacets.getValues()) {
+			      clusterResponse.add(clusterCount.getName());
+			      clusterCount.getCount();
+			      
+			      fieldCounts.put(clusterCount.getName(), clusterCount.getCount());
+			      average=average+ (clusterCount.getCount()* Integer.parseInt(clusterCount.getName() ));
+			      
+			      System.out.println("-------clusterCount.getCount()-->"+clusterCount.getCount()+"==============clusterCount.getName()========>"+clusterCount.getName());
+			    
+			      System.out.println(average);
+			    }
+			  
+		 
+		 
+		
+		
+		
+		// List<Count> gg=ff2.get(0).getValues();
+		 model.addAttribute("Total Reviews",queryResponse.getResults().getNumFound());
+		model.addAttribute("Reviews stats ",fieldCounts);
+		model.addAttribute("Average Ratting", Math.round(  average/queryResponse.getResults().getNumFound()));
+	//	model.addAllAttributes(queryResponse.getResults());
+		return model;
 	
 	}
 	
