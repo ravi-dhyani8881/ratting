@@ -32,9 +32,6 @@ import com.spring.ratting.validation.ValidationService;
 
 import io.swagger.annotations.ApiOperation;
 
-//import com.restagent.beans.EmailParameters;
-//import com.restagent.controller.Communication;
-//import com.restagent.controller.CommunicationImpl;
 import com.spring.ratting.service.CommonDocumentService;
 @RestController
 @ExposesResourceFor(UserController.class)

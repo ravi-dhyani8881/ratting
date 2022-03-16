@@ -6,7 +6,6 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 
-
 public interface SolrConnection {
 	
 //	public String addSolrRattingDoc(ReviewRatting reviewRatting, String solrUrl);

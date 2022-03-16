@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 
@@ -438,10 +437,6 @@ public class CommentRattingController implements SolrUrls {
 		
 		
 		
-		System.out.println("----->"+ff2.get(0).getValues().get(1).getName());
-		
-		System.out.println("----->"+ff2.get(0).getValues().get(1).getCount());
-		
 		
 		Map<String, Long> fieldCounts = new HashMap<>();
 		
@@ -471,7 +466,7 @@ public class CommentRattingController implements SolrUrls {
 		// List<Count> gg=ff2.get(0).getValues();
 		 model.addAttribute("Total Reviews",queryResponse.getResults().getNumFound());
 		model.addAttribute("Reviews stats ",fieldCounts);
-		model.addAttribute("Average Ratting", Math.round(  average/queryResponse.getResults().getNumFound()));
+		model.addAttribute("Average Ratting", Math.round(average/queryResponse.getResults().getNumFound()));
 	//	model.addAllAttributes(queryResponse.getResults());
 		return model;
 	

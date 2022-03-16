@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import com.spring.ratting.util.Utility;
 
-
 @Component
 public class SolrConnectionImpl implements SolrConnection {
 

@@ -25,7 +25,6 @@ public class ReviewReplyController {
 	
 	@Autowired
 	SolrConnection solrRatting;
-	
 	@Autowired
 	CommonDocumentService commonDocumentService;
 	
@@ -51,8 +50,7 @@ public class ReviewReplyController {
 			
 		solrRatting.addDocument(SolrUrls.replyUrl, document);		
 		
-		return model.addAttribute("Message", new ResponseMessage("Reply added Sucesfully", 201));
-		
+		return model.addAttribute("Message", new ResponseMessage("Reply added Sucesfully", 201));		
 		}
 	
 	@RequestMapping(value="/add" , method=RequestMethod.POST)
@@ -62,7 +60,5 @@ public class ReviewReplyController {
 		ModelMap model=new ModelMap();
 		String replyId=commonDocumentService.addDocument(payload, url) ;
 		return model.addAttribute("Message", new ResponseMessage("Reply added Sucesfully", 201,replyId));
-		}
-	
-	
+		}	
 }

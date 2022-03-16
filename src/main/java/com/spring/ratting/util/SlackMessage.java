@@ -1,7 +1,5 @@
 package com.spring.ratting.util;
 
-
-
 import java.io.Serializable;
 
 public class SlackMessage implements Serializable {
@@ -47,5 +45,4 @@ public class SlackMessage implements Serializable {
 	public void setIcon_emoji(String icon_emoji) {
 		this.icon_emoji = icon_emoji;
 	}
-
 }

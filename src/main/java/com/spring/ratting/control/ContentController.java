@@ -42,8 +42,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import springfox.documentation.annotations.ApiIgnore;
 
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

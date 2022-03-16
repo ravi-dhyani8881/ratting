@@ -32,6 +32,5 @@ public interface CommonDocumentService {
 	
 	public <T> T deleteDocumentByTemplate(String query, String url);
 	
-	public <T> T advanceQueryByTemplate(String query , String url);
-	
+	public <T> T advanceQueryByTemplate(String query , String url);	
 }

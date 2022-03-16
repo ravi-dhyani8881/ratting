@@ -2,7 +2,6 @@ package com.spring.ratting.service;
 
 import java.util.Map;
 
-
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +98,4 @@ public class CommonDocumentServiceImpl implements CommonDocumentService{
 	 	});
 		return document;
 	}
-
-	
 }

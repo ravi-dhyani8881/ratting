@@ -22,8 +22,6 @@ public class ResponseMessage {
 	
 	private String responseType="error";
 	
-	
-	
 	public ResponseMessage(String responseMessage, int responseCode, Long numFound, String query) {
 		super();
 		this.responseMessage = responseMessage;

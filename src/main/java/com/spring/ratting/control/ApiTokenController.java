@@ -1,6 +1,5 @@
 package com.spring.ratting.control;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,8 +29,7 @@ import io.swagger.annotations.ApiOperation;
 @RestController
 @ExposesResourceFor(ContentController.class)
 @RequestMapping("/apiKey")
-public class ApiTokenController {
-	
+public class ApiTokenController {	
 	
 	@Autowired
 	CommonDocumentService commonDocumentService;
