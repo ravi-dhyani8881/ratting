@@ -1,12 +1,10 @@
 package com.spring.ratting.control;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,12 +14,10 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.hateoas.ExposesResourceFor;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-
 import org.springframework.http.MediaType;
 
 import org.springframework.ui.ModelMap;
@@ -33,16 +29,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 import com.spring.ratting.service.CommonDocumentService;
 import com.spring.ratting.solr.SolrConnection;
 import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.util.SolrUrls;
 import com.spring.ratting.util.Utility;
 import com.spring.ratting.validation.ValidationService;
-
-
-
 
 import io.swagger.annotations.Api;
 
@@ -363,6 +355,57 @@ public class CommentRattingController implements SolrUrls {
 		return model;
 	
 	}
+	
+	// To check how many likes in an reviews 
+	
+	@RequestMapping(value="/findAnalyticLikeOnReview" , method=RequestMethod.GET)
+	public ModelMap findAnalyticOnReview(@RequestParam(name = "contentId", required = true) String contentId,
+			@RequestParam(name = "reviewId", required = true) String reviewId,
+	@RequestParam(name = "noOfRecords", required = true) 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();
+		String query="(contentId:"+contentId+" AND "+"reviewId:"+reviewId+")";
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		searchCriteria.put("facet", "true");
+		searchCriteria.put("facet.field", "like");
+		searchCriteria.put("fl", "userId");
+		
+		QueryResponse queryResponse = null;
+	    queryResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, likelUrl);
+	
+		
+		Map<String, Long> fieldCounts = new HashMap<>();
+		
+		 List<FacetField> clusterFields =queryResponse.getFacetFields();
+		
+	
+		 List<String> clusterResponse = new ArrayList();
+		 
+			    FacetField clusterFacets = clusterFields.get(0);
+			    for (FacetField.Count clusterCount : clusterFacets.getValues()) {
+			      clusterResponse.add(clusterCount.getName());
+			      clusterCount.getCount();
+			      
+			      fieldCounts.put(clusterCount.getName(), clusterCount.getCount());
+			     
+			      System.out.println("-------clusterCount.getCount()-->"+clusterCount.getCount()+"==============clusterCount.getName()========>"+clusterCount.getName());
+			    
+			    
+			    }
+			  
+			
+		 model.addAttribute("Total Count",queryResponse.getResults().getNumFound());
+		
+		 
+		model.addAttribute("Reviews stats ",fieldCounts);
+		return model;
+	
+	}
 
 	@RequestMapping(value="/findAllReviewOnContentOnly" , method=RequestMethod.GET)
 	public Object[] findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
@@ -376,13 +419,10 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("q", query);
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
+		searchCriteria.put("facet", "true");
+		searchCriteria.put("fl", "userId");
 		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
-	
-	
-		
-		 
-		
-		// model.putAll(model)
+     	// model.putAll(model)
 		 
 		model.addAttribute("solr",queryResponse.getResults().toArray());
 	//	model.addAllAttributes(queryResponse.getResults());
