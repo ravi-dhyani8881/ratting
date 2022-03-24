@@ -506,7 +506,7 @@ public class CommentRattingController implements SolrUrls {
 		// List<Count> gg=ff2.get(0).getValues();
 		 model.addAttribute("Total Reviews",queryResponse.getResults().getNumFound());
 		model.addAttribute("Reviews stats ",fieldCounts);
-		model.addAttribute("Average Ratting", Math.round(average/queryResponse.getResults().getNumFound()));
+		model.addAttribute("Average Ratting", average>0 ? Math.round(average/queryResponse.getResults().getNumFound()):0);
 	//	model.addAllAttributes(queryResponse.getResults());
 		return model;
 	
