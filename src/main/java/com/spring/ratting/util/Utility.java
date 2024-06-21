@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.springframework.ui.ModelMap;
+//import com.main.common.response.ResponseMessage;
 
 public class Utility {
 	
@@ -17,7 +18,21 @@ public class Utility {
 	}
 		
 	public static HttpSolrClient getSolrClient(String solrUrl) {
+		// HttpSolrClient solr = new HttpSolrClient.Builder(solrUrl).build();
+		
+	//	HttpSolrClient solr=new HttpSolrClient(solrUrl);
+	
 		HttpSolrClient solr = new HttpSolrClient.Builder(solrUrl).build();
+		
+		
+	//	SolrHttpRequestRetryHandler kk=	new SolrHttpRequestRetryHandler(2);
+		
+		solr.setConnectionTimeout(1000);
+		
+		
+		
+	//	SolrHttpRequestRetryHandler dd= new SolrHttpRequestRetryHandler(2);
+	
 		solr.setParser(new XMLResponseParser());
 		return solr;
 	}
@@ -44,6 +59,17 @@ public static void sendEmail(String userActivationKey, String userId) {
 	
 	}
 	
+
+public static int findNthIndexOf(String str, char ch, int n) {
+    int index = -1;
+    for (int i = 0; i < n; i++) {
+        index = str.indexOf(ch, index + 1);
+        if (index == -1) {
+            break;
+        }
+    }
+    return index;
+}
 	
 	
 //	public static void main(String hh[]) {

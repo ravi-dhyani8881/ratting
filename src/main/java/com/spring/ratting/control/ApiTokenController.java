@@ -8,9 +8,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
 import org.apache.solr.client.solrj.response.QueryResponse;
-
+import org.apache.solr.common.SolrDocumentList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,13 +62,15 @@ public class ApiTokenController {
 			
 		else if(((QueryResponse) apiResponse).getResults().size() ==0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Bad request user not exits", 404));
+			return model.addAttribute("Message", new ResponseMessage("Bad request user not exits or active yet", 404));
 		}else {
 			try {
 				payload.remove("userId");
 				payload.put("ID", userId);
+				payload.put("userId", userId);
 				payload.put("apiKey", apiKey);
 				payload.put("status", "A");
+				
 				searchCriteria.put("q", "ID:"+userId+ " && "+ "status:A");
 				apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
 				
@@ -93,7 +95,68 @@ public class ApiTokenController {
 				e.printStackTrace();
 			}
 			model.addAttribute("apiKey", apiKey);
-			return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201));
+			
+		//	return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201));
+			return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201, null, null,
+					null, null, "created"));
 		}	
 	}
+	
+	
+	
+	
+	@ApiOperation(value = "This service genearte Api key")
+	@RequestMapping(value="/viewApiKey" , method=RequestMethod.POST)
+	public ModelMap  viewApiKey(@RequestBody Map<String, Object> payload , HttpServletRequest request, HttpServletResponse response ) {
+		
+		ModelMap model=new ModelMap();
+		Object apiResponse =null;
+		String userId=(String)payload.get("userId");
+		String apiKey=Utility.getUniqueId();
+		
+		Map<String, String> searchCriteria=new HashMap<String,String>(); 
+		searchCriteria.put("q", "ID:"+userId+ " && "+ "userStatus:A");
+		
+		apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, userUrl);
+		
+		if(apiResponse instanceof RemoteSolrException )
+		{
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return model.addAttribute("Message", new ResponseMessage("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500 ));	
+		}else if(apiResponse instanceof Exception) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));	
+		}
+			
+		else if(((QueryResponse) apiResponse).getResults().size() ==0) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return model.addAttribute("Message", new ResponseMessage("Bad request user not exits or active yet", 404));
+		}else {
+			try {
+				
+				searchCriteria.put("q", "userId:"+userId+ " && "+ "status:A");
+				apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+				
+				if(apiResponse instanceof Exception )
+				{
+					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				}
+				
+							
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			model.addAttribute("result",((QueryResponse) apiResponse).getResults().get(0));
+			
+		//	return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201));
+			return model;
+		}	
+	}
+	
+	
+	
+	
 }

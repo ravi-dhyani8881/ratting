@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,10 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
-
+import org.apache.solr.common.SolrDocumentList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -39,7 +39,7 @@ import com.spring.ratting.validation.ValidationService;
 import io.swagger.annotations.Api;
 
 
-@Api(value = "Review and ratting managment system", description = "Service used for operation for review and ratting")
+@Api(value = "Review and ratting managment system", description = "Service used for add review and ratting on content", tags = "Comments")
 @RestController
 @ExposesResourceFor(CommentRattingController.class)
 @RequestMapping("review-ratting")
@@ -68,6 +68,7 @@ public class CommentRattingController implements SolrUrls {
     String solrAnalyticUrl=SolrUrls.solrAnalyticUrl;
     String helpFullUrl=SolrUrls.helpFullUrl;
     String likeUrl=SolrUrls.likelUrl;
+    String sampleUrl=SolrUrls.sampleUrl;
 
     /**
     
@@ -333,7 +334,7 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("q", query);
 		searchCriteria.put("rows", noOfRecords);
 		searchCriteria.put("start", pageNumber);
-		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
 		model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
 		return model;
 	}
@@ -350,7 +351,7 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("q", query);
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
-		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
 		model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
 		return model;
 	
@@ -373,7 +374,7 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("start", Integer.toString(pageNumber));
 		searchCriteria.put("facet", "true");
 		searchCriteria.put("facet.field", "like");
-		searchCriteria.put("fl", "userId");
+	//	searchCriteria.put("fl", "userId");
 		
 		QueryResponse queryResponse = null;
 	    queryResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, likelUrl);
@@ -384,7 +385,7 @@ public class CommentRattingController implements SolrUrls {
 		 List<FacetField> clusterFields =queryResponse.getFacetFields();
 		
 	
-		 List<String> clusterResponse = new ArrayList();
+		 List<String> clusterResponse = new ArrayList<String>();
 		 
 			    FacetField clusterFacets = clusterFields.get(0);
 			    for (FacetField.Count clusterCount : clusterFacets.getValues()) {
@@ -400,6 +401,7 @@ public class CommentRattingController implements SolrUrls {
 			  
 			
 		 model.addAttribute("Total Count",queryResponse.getResults().getNumFound());
+	//	 model.addAttribute("Response", ((QueryResponse) queryResponse).getResults());
 		
 		 
 		model.addAttribute("Reviews stats ",fieldCounts);
@@ -408,26 +410,34 @@ public class CommentRattingController implements SolrUrls {
 	}
 
 	@RequestMapping(value="/findAllReviewOnContentOnly" , method=RequestMethod.GET)
-	public Object[] findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
+	public ModelMap findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
 	@RequestParam(name = "noOfRecords", required = true) 
 	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
 			) {
 	
 		ModelMap model=new ModelMap();
+		Object apiResponse=null;
 		String query="reviewContentId:"+contentId;
 		Map<String, String> searchCriteria=new HashMap<String, String>();
 		searchCriteria.put("q", query);
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
 		searchCriteria.put("facet", "true");
-		searchCriteria.put("fl", "userId");
-		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
+		searchCriteria.put("q.op", "O");
+		searchCriteria.put("facet.field", "reviewRatting");
+		
+	//	searchCriteria.put("fl", "userId");
+	    apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+		
+	
      	// model.putAll(model)
 		 
-		model.addAttribute("solr",queryResponse.getResults().toArray());
+	//	model.addAttribute("solr",queryResponse.getResults().toArray());
 	//	model.addAllAttributes(queryResponse.getResults());
-		return queryResponse.getResults().toArray();
-	
+		
+		
+		return model.addAttribute("result",((QueryResponse) apiResponse).getResults());
+
 	}
 	
 	
@@ -605,4 +615,174 @@ public class CommentRattingController implements SolrUrls {
 			return model.addAttribute("Message", new ResponseMessage("Review added Sucesfully", 201,reviewId));	
 		}
 		}
+	
+	
+	@RequestMapping(value="/testApi" , method=RequestMethod.POST)
+	public String calltest(
+			@RequestBody Map<String, String> payload
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+
+	//	System.out.println("Ratting world2 ---------->"+(String)payload.get("title"));
+
+	//	System.out.println("Ratting world2 ---------->"+(String)payload.get("content"));
+		
+		Map<String, Object> payload2= new HashMap<String, Object>();
+		
+		payload2.put("id",Utility.getUniqueId());
+		payload2.put("title",(String)payload.get("title"));
+		
+		payload2.put("content","");
+		payload2.put("content_text",payload.get("content"));
+		
+		
+		Object apiResponse =commonDocumentService.addDocumentByTemplate(payload2, sampleUrl);
+		
+		
+		return "gg";
+	
+	}
+	
+	@RequestMapping(value="/listPages" , method=RequestMethod.POST)
+	public ModelMap listPages(
+			@RequestBody Map<String, String> payload , @RequestParam(name = "start") String start, @RequestParam(name = "rows") String rows
+		
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+		ModelMap model=new ModelMap();
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("Query"));
+		
+		System.out.println("ooooooo-----------oooooooooooooo>"+rows);
+		System.out.println("ooooooo-----------oooooooooooooo>"+start);
+		
+
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("title"));
+		
+		Map<String, Object> payload2= new HashMap<String, Object>();
+		
+		payload2.put("id",Utility.getUniqueId());
+		
+		
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		System.out.println("--------Query---->"+"title:*"+payload.get("Query")+"*");
+		System.out.println("--------rows---->"+rows);
+		System.out.println("--------start---->"+start);
+		
+		searchCriteria.put("q", "title:*"+payload.get("Query")+"*");
+		searchCriteria.put("rows", rows);
+		searchCriteria.put("start", start);
+		searchCriteria.put("facet", "true");
+	
+		QueryResponse dd = (QueryResponse)commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, sampleUrl);
+	//	dd.getResults().getNumFound();
+		//	dd.getResults();
+	//	dd.getResponse();
+	//	System.out.print("-4-->"+dd.getResults().getNumFound());
+		
+		
+		System.out.println("------------->"+dd.getResults().toArray());
+
+		System.out.println("-------dd.getResponse()------>"+dd.getResults().getNumFound());
+		
+//		QueryResponse apiResponse =commonDocumentService.addDocumentByTemplate(payload2, "http://192.168.1.104:8983/solr/Solr_sample");
+		model.addAttribute("results",dd.getResults());
+		model.addAttribute("qTime",dd.getQTime());
+		
+		model.addAttribute("totalRecord",dd.getResults().getNumFound());
+		
+		return model;
+	
+	}
+	
+	
+	
+	@RequestMapping(value="/listPagginationPages" , method=RequestMethod.POST)
+	public ModelMap listPages(
+			@RequestBody Map<String, String> payload , @RequestParam(name = "start") String start, @RequestParam(name = "rows") String rows,
+			@RequestParam(value = "q", required = false) String query
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+		ModelMap model=new ModelMap();
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("Query"));
+		
+		System.out.println("ooooooo-----------oooooooooooooo>"+rows);
+		System.out.println("ooooooo-----------oooooooooooooo>"+start);
+		
+
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("title"));
+		
+		Map<String, Object> payload2= new HashMap<String, Object>();
+		
+		payload2.put("id",Utility.getUniqueId());
+		
+		
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", "title:*"+query+"*");
+		searchCriteria.put("rows", rows);
+		searchCriteria.put("start", start);
+		searchCriteria.put("facet", "true");
+	
+		QueryResponse dd = (QueryResponse)commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, sampleUrl);
+	//	dd.getResults().getNumFound();
+		//	dd.getResults();
+	//	dd.getResponse();
+	//	System.out.print("-4-->"+dd.getResults().getNumFound());
+		
+		
+		System.out.println("------------->"+dd.getResults().toArray());
+
+		System.out.println("-------dd.getResponse()------>"+dd.getResults().getNumFound());
+		
+//		QueryResponse apiResponse =commonDocumentService.addDocumentByTemplate(payload2, "http://192.168.1.104:8983/solr/Solr_sample");
+		model.addAttribute("results",dd.getResults());
+		model.addAttribute("qTime",dd.getQTime());
+		
+		model.addAttribute("totalRecord",dd.getResults().getNumFound());
+		
+		return model;
+	
+	}
+	
+	
+	
+	@RequestMapping(value="/getDataByQuery" , method=RequestMethod.POST)
+	public ModelMap getDataByQuery(
+			@RequestBody Map<String, String> payload
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+		ModelMap model=new ModelMap();
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("query"));
+			
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", payload.get("query"));
+		searchCriteria.put("rows", Integer.toString(800));
+		searchCriteria.put("start", Integer.toString(0));
+		searchCriteria.put("facet", "true");
+	
+		QueryResponse dd = (QueryResponse)commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, sampleUrl);
+	//	dd.getResults().getNumFound();
+		//	dd.getResults();
+	//	dd.getResponse();
+	//	System.out.print("-4-->"+dd.getResults().getNumFound());
+		
+		
+		System.out.println("------------->"+dd.getResults().toArray());
+		
+//		QueryResponse apiResponse =commonDocumentService.addDocumentByTemplate(payload2, "http://192.168.1.104:8983/solr/Solr_sample");
+		model.addAttribute("results",dd.getResults());
+		
+		return model;
+	
+	}
+	
+	
+	
 }

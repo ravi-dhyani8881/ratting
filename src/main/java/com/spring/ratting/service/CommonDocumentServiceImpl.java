@@ -2,6 +2,7 @@ package com.spring.ratting.service;
 
 import java.util.Map;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.spring.ratting.solr.SolrConnection;
 import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.util.Utility;
+
 
 @Component
 public class CommonDocumentServiceImpl implements CommonDocumentService{
@@ -97,5 +99,34 @@ public class CommonDocumentServiceImpl implements CommonDocumentService{
 	 		document.addField(k, v);
 	 	});
 		return document;
+	}
+
+	@Override
+	public <T> T advanceSearchDocumentAndExceptionByTemplate(Map<String, String> searchCriteria, String url,SolrQuery solrQuery) {
+		return (T)solrConnection.advanceSerachAndExceptionByTemplate(url, searchCriteria,solrQuery);
+		
+	}
+
+	@Override
+	public <T> T addDocumentAndExceptionByTemplate(Map<String, Object> payload, String url) {
+		return (T) solrConnection.addDocumentAndExceptionByTemplate(url, this.createDoc(payload));
+	}
+
+	@Override
+	public <T> T updateDocumentAndExceptionByTemplate(Map<String, Object> payload, String url) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> T deleteDocumentAndExceptionByTemplate(String query, String url) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> T advanceQueryAndExceptionByTemplate(String query, String url) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

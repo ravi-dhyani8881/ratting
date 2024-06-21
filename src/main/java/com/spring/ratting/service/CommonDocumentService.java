@@ -2,7 +2,9 @@ package com.spring.ratting.service;
 
 import java.util.Map;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
+
 
 import com.spring.ratting.util.ResponseMessage;
 
@@ -33,4 +35,18 @@ public interface CommonDocumentService {
 	public <T> T deleteDocumentByTemplate(String query, String url);
 	
 	public <T> T advanceQueryByTemplate(String query , String url);	
+	
+	
+	
+	//same method By Template and exception
+	
+		public <T> T advanceSearchDocumentAndExceptionByTemplate(Map<String, String> searchCriteria , String url, SolrQuery solrQuery);
+		
+		public <T> T addDocumentAndExceptionByTemplate(Map<String, Object> payload , String url);
+		
+		public <T> T updateDocumentAndExceptionByTemplate(Map<String, Object> payload , String url);
+		
+		public <T> T deleteDocumentAndExceptionByTemplate(String query, String url);
+		
+		public <T> T advanceQueryAndExceptionByTemplate(String query , String url);	
 }

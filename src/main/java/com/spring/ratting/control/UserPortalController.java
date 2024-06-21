@@ -13,8 +13,14 @@ public class UserPortalController {
 	
 	@RequestMapping(value="/conform-user" , method=RequestMethod.GET)
 	public String  addContent() {
-		
-		
 		return "conform-user";
 	}
+	
+	@RequestMapping(value="/rich-text" , method=RequestMethod.GET)
+	public String  richText() {
+		
+		
+		return "rich-text";
+	}
+	
 }

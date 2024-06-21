@@ -2,28 +2,25 @@ package com.spring.ratting.control;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.http.HttpStatus;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.spring.ratting.solr.SolrConnection;
 import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.util.SolrUrls;
@@ -32,7 +29,13 @@ import com.spring.ratting.validation.ValidationService;
 
 import io.swagger.annotations.ApiOperation;
 
+import com.main.external.exception.user.CustomException4xx;
+import com.main.external.exception.user.UserException;
+import com.main.external.model.User;
+import com.spring.ratting.domain.InnerAnalytic;
+import com.spring.ratting.domain.InnerReviews;
 import com.spring.ratting.service.CommonDocumentService;
+
 @RestController
 @ExposesResourceFor(UserController.class)
 @RequestMapping("users")
@@ -44,8 +47,7 @@ public class UserController {
 	@Autowired
 	CommonDocumentService commonDocumentService;
 	
-	@Autowired
-	JavaMailSender javaMailSender;
+	
 	
 	@Autowired
 	ValidationService validationService;
@@ -57,25 +59,35 @@ public class UserController {
 	
 	// Need to check duplicate email adress in old implemetation in git
 	
-	@RequestMapping(value = "/userSignUp", method = RequestMethod.POST)
+	@PostMapping("/userSignUp")
 	public ModelMap addNew(@RequestBody Map<String, Object> payload, HttpServletResponse response) {
 		ModelMap model = new ModelMap();
 		String userId=Utility.getUniqueId();		
-		try {
+		
 			payload.put("ID", userId);
-			payload.put("userActivationKey", Utility.getUniqueId());
+			payload.put("userActivationKey", (String)payload.get("userActivationKey")!=null ? (String)payload.get("userActivationKey") : Utility.getUniqueId());
 			
+
+			if (emailExists((String)payload.get("email"))) {
+				//throw new Exception();
+				Exception r = new RuntimeException("Email Exist");
+				
+			//	throw new CustomException4xx("There is an account with that email address: "  + payload.get("email"), r);
+				
+				throw new UserException("There is an account with that email address: "  + payload.get("email"), r);
+	        }
+
 			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, url);
+			
 			
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
 			}
-			model.addAttribute("Message", new ResponseMessage("User added Sucesfully. Please activate through email activation code.", 201,null,null,null,null,"Added"));					
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			response.setStatus(HttpServletResponse.SC_CREATED);
+			model.addAttribute("Message", new ResponseMessage("User added Sucesfully. Please activate through email activation code.", HttpServletResponse.SC_CREATED,null,null,null,null,"Added"));					
+		
 		return model;
 	}
 	
@@ -85,8 +97,9 @@ public class UserController {
 //		"userActivationKey": "1234"
 //		}
 //	
-	@RequestMapping(value = "/confirmUser", method = RequestMethod.POST)
-	public ModelMap verifyUser(@RequestBody Map<String, Object> payload, HttpServletResponse response) {
+	@Deprecated
+	@PostMapping("/activate-user")
+	public ModelMap activateUser(@RequestBody Map<String, Object> payload, HttpServletResponse response) {
 		/*
 		 * userStatus=A means Activated user
 		 * userStatus=I means In-Activated user
@@ -111,11 +124,17 @@ public class UserController {
 		} 
 		else if(apiResponse.getResults().get(0).get("userActivationKey").equals("Activated")) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("User already conformed", 200));
+			
+			return	model.addAttribute("Message", new ResponseMessage("User already activate through email activation code.",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));					
+			
 		}
 		else if(!apiResponse.getResults().get(0).get("userActivationKey").equals(activationKey)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", 401));
+		
+			return	model.addAttribute("Message", new ResponseMessage("Invalid activation Key",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Invalid request"));					
+			
+			
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", 401));
 		}
 		
 			SolrDocument solrDocument = apiResponse.getResults().get(0);
@@ -123,11 +142,79 @@ public class UserController {
 			solrDocument.put("userActivationKey", "Activated");
 			
 			commonDocumentService.updateDocumentByTemplate(solrDocument, url) ;
-			model.addAttribute("userId",userId);
-					
-			return model.addAttribute("Message", new ResponseMessage("User conformation Sucessful", 200));
+		//	model.addAttribute("userId",userId);
+			response.setStatus(HttpServletResponse.SC_OK);
+			model.addAttribute("Message", new ResponseMessage("User activated Sucesfully.",  HttpServletResponse.SC_OK,null,null,null,null,"activated"));					
+			
+			
+			return model;
 		} 
 	
+	@PostMapping("/activate-user-new")
+	public ModelMap activateUserNew(@RequestBody Map<String, Object> payload, HttpServletResponse response) {
+		/*
+		 * userStatus=A means Activated user
+		 * userStatus=I means In-Activated user
+		 */
+
+		ModelMap model = new ModelMap();
+		String userActivationKeyDecode=null;
+		String userEmail =null;
+		String activationKey=(String)payload.get("userActivationKey");
+		try {
+		byte[] decodedBytes = Base64.getDecoder().decode(activationKey);
+		//	String decodedString = new String(decodedBytes);
+			
+			String[] parts = new String(decodedBytes).split("\\+", 2);
+			 userActivationKeyDecode = parts[0];
+			 userEmail = parts[1];
+		}catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return	model.addAttribute("Message", new ResponseMessage("Invalid activation code",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));
+		}
+		
+		Map<String, String> searchCriteria=new HashMap<String,String>(); 
+	//	searchCriteria.put("q", "userActivationKey:"+activationKey+ " && "+ "ID:"+userId+ " && "+ "userStatus: I");
+		
+		searchCriteria.put("q", "email:"+userEmail);
+		
+	//	QueryResponse res= commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);	
+		
+		QueryResponse apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+		
+		if (apiResponse.getResults().size() == 0) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return model.addAttribute("Message", new ResponseMessage("Invalid User", 401));
+		} 
+		else if(apiResponse.getResults().get(0).get("userActivationKey").equals("Activated")) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			
+			return	model.addAttribute("Message", new ResponseMessage("User already activate through email activation code.",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));					
+			
+		}
+		else if(!apiResponse.getResults().get(0).get("userActivationKey").equals(userActivationKeyDecode)) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		
+			return	model.addAttribute("Message", new ResponseMessage("Invalid activation Key",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Invalid request"));					
+			
+			
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", 401));
+		}
+		
+			SolrDocument solrDocument = apiResponse.getResults().get(0);
+			solrDocument.put("userStatus", "A");
+			solrDocument.put("userActivationKey", "Activated");
+			
+			commonDocumentService.updateDocumentByTemplate(solrDocument, url) ;
+		//	model.addAttribute("userId",userId);
+			response.setStatus(HttpServletResponse.SC_OK);
+			model.addAttribute("Message", new ResponseMessage("User activated Sucesfully.",  HttpServletResponse.SC_OK,null,null,null,null,"activated"));					
+			
+			
+			return model;
+		} 
+
+
 	@RequestMapping(value = "/changeUserStatus", method = RequestMethod.GET)
 	public ModelMap changeUserStatus(@RequestParam(name = "userId", required = true) String userId,
 			@RequestParam(name = "userStatusFlag", required = true) String userStatusFlag) {
@@ -234,8 +321,8 @@ public class UserController {
 		}
 	}
 	
-	@RequestMapping(value = "/user-authentication", method = RequestMethod.POST)
-	public ModelMap userAuth(@RequestBody Map<String, Object> payload) {
+	@PostMapping("/user-authentication")
+	public ModelMap userAuth( @RequestBody @Valid User user, HttpServletResponse response, @RequestHeader Map<String, String> headers) {
 		// Example payload in body
 //		{
 //		"reviewComments":"Hello",
@@ -244,15 +331,43 @@ public class UserController {
 //		"reviewContentId":"1"
 //		}
 //	
+		
+		headers.forEach((key, value) -> {
+		//	System.out.println("----------->"+key+"----------->"+value);
+	       
+	    });
+		
+		
 		ModelMap model = new ModelMap();
 		//payload.containsKey("reviewUserId");
 		
-	//	Object apiResponse =commonDocumentService.advanceQueryByTemplate("ID:"+contentId, url);
+		Map<String, String> searchCriteria=new HashMap<String,String>(); 
+		searchCriteria.put("q", "((email:"+user.getUsername()+") && ( email:"+user.getUsername()+" && password:"+user.getPassword()+"))");
+		searchCriteria.put("fl", "userStatus");
 		
 		
-		System.out.println("----->" + payload.containsKey("email"));
-		model.addAttribute("name","Ravi");
-	return model;	
+		
+		QueryResponse apiResponse =commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+		((QueryResponse) apiResponse).getResults().forEach((C)-> {
+		
+			if(C.get("userStatus").equals("I")){
+				model.addAttribute("Message", new ResponseMessage("User is inactive. Please activate user account.", 403,null,null,null,null,"INACTIVE"));	
+				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+				
+		}else {
+			response.setStatus(HttpServletResponse.SC_OK);
+			model.addAttribute("Message", new ResponseMessage("User authenticated sucesfully.", HttpServletResponse.SC_OK,null,null,null,null,"AUTHENTICATED"));					
+			
+		}
+			}
+		
+				);
+		if(apiResponse.getResults().size()==0) {
+		
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		model.addAttribute("Message", new ResponseMessage("User / password incorrect", HttpServletResponse.SC_UNAUTHORIZED,null,null,null,null,"UNAUTHORIZED"));
+		}
+		return model;	
 	}
 	
 	
@@ -315,5 +430,17 @@ public class UserController {
 	}
 	
 	
+	
+
+	private boolean emailExists(String email) {
+		Map<String, String> searchCriteria=new HashMap<String,String>(); 
+		searchCriteria.put("q", "email:"+email);
+		searchCriteria.put("rows", "1");
+		searchCriteria.put("start", "0");
+       return ((QueryResponse)	commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url)).getResults().size() > 0 ? true :false  ;
+	
+	}
+	
+
 	
 }

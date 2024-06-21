@@ -12,7 +12,7 @@ import org.apache.solr.common.SolrDocument;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -47,7 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 
-@Api(value = "Content Mangment System" , description = "This service used to perform operation on Content.")
+@Api(value = "Content Mangment System" , description = "Service used to perform operation on Content.", tags = "Content")
 @RestController
 @ExposesResourceFor(ContentController.class)
 @RequestMapping("*/")
@@ -61,7 +61,7 @@ public class ContentController {
 	
     String url=SolrUrls.contentUrl;
 		
-	@ApiOperation(value = "This service used to add content")
+	@ApiOperation(value = "Service used to add content")
 	@RequestMapping(value="/addContent" , method=RequestMethod.POST)
 	public ModelMap  addContent(@RequestBody Map<String, Object> payload , HttpServletResponse response, HttpServletRequest request,
 			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
@@ -170,7 +170,7 @@ public class ContentController {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
 		}else {
-			query=Utility.getQuery(query, userId);
+	//		query=Utility.getQuery(query, userId);
 			Map<String, String> searchCriteria=new HashMap<String,String>(); 
 			searchCriteria.put("q", query);
 			searchCriteria.put("rows", rows);

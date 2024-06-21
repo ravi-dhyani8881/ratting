@@ -2,6 +2,7 @@ package com.spring.ratting.solr;
 
 import java.util.Map;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -40,4 +41,19 @@ public interface SolrConnection {
 	public <T> T deleteByTemplate(String solrUrl, String query);
 
 	public <T> T  serachQueryByTemplate(String solrUrl, String query);
+	
+	
+	
+	
+	// Advance search by template with exception
+		public <T> T advanceSerachAndExceptionByTemplate(String solrUrl, Map<String, String> searchCriteria, SolrQuery solrQuery);
+		
+		public <T> T addDocumentAndExceptionByTemplate(String solrUrl, SolrInputDocument document);
+		
+		public <T> T updateDocumentAndExceptionByTemplate(String solrUrl, SolrInputDocument document);
+		
+		public <T> T deleteByAndExceptionTemplate(String solrUrl, String query);
+
+		public <T> T  serachQueryAndExceptionByTemplate(String solrUrl, String query);
+	
 }

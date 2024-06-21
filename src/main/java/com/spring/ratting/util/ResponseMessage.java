@@ -1,5 +1,9 @@
 package com.spring.ratting.util;
 
+import java.util.Date;
+import java.util.List;
+
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocumentList;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,8 +16,10 @@ public class ResponseMessage {
 	@JsonProperty("statusCode")
 	private int responseCode;
 	
+	@JsonProperty("totalRecords")
 	private Long numFound;
 	
+	@JsonProperty("records")
 	private SolrDocumentList document;
 	
 	private String ID;
@@ -21,6 +27,15 @@ public class ResponseMessage {
 	private String query;
 	
 	private String responseType="error";
+	
+	private Date createdDate;
+	
+	private String start;
+	
+	private String row;
+	@JsonProperty("advanced")
+	List<FacetFieldDTO> dto;
+	
 	
 	public ResponseMessage(String responseMessage, int responseCode, Long numFound, String query) {
 		super();
@@ -63,6 +78,36 @@ public class ResponseMessage {
 		this.query = query;
 		this.responseType = responseType;
 	}
+	
+	
+	
+	
+	public ResponseMessage(String responseMessage, int responseCode, Long numFound, SolrDocumentList document,
+			String iD, String query, String responseType, String start, String row, List<FacetFieldDTO> dto) {
+		super();
+		this.responseMessage = responseMessage;
+		this.responseCode = responseCode;
+		this.numFound = numFound;
+		this.document = document;
+		ID = iD;
+		this.query = query;
+		this.responseType = responseType;
+		this.start = start;
+		this.row = row;
+		this.dto = dto;
+	}
+	public String getStart() {
+		return start;
+	}
+	public void setStart(String start) {
+		this.start = start;
+	}
+	public String getRow() {
+		return row;
+	}
+	public void setRow(String row) {
+		this.row = row;
+	}
 	public String getResponseMessage() {
 		return responseMessage;
 	}
@@ -79,13 +124,7 @@ public class ResponseMessage {
 		this.responseCode = responseCode;
 	}
 
-	public Long getRecordFound() {
-		return numFound;
-	}
-
-	public void setRecordFound(Long recordFound) {
-		this.numFound = recordFound;
-	}
+	
 
 	public SolrDocumentList getDocument() {
 		return document;
@@ -117,5 +156,48 @@ public class ResponseMessage {
 	}
 	public void setResponseType(String responseType) {
 		this.responseType = responseType;
-	}	
+	}
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+	public ResponseMessage(String responseMessage, int responseCode, Long numFound, SolrDocumentList document,
+			String iD, String query, String responseType, Date createdDate) {
+		super();
+		this.responseMessage = responseMessage;
+		this.responseCode = responseCode;
+		this.numFound = numFound;
+		this.document = document;
+		ID = iD;
+		this.query = query;
+		this.responseType = responseType;
+		this.createdDate = createdDate;
+	}
+	public ResponseMessage(String responseMessage, int responseCode, Long numFound, SolrDocumentList document,
+			String iD, String query, String responseType,  String start, String row) {
+		super();
+		this.responseMessage = responseMessage;
+		this.responseCode = responseCode;
+		this.numFound = numFound;
+		this.document = document;
+		ID = iD;
+		this.query = query;
+		this.responseType = responseType;
+		
+		this.start = start;
+		this.row = row;
+	}
+	public List<FacetFieldDTO> getDto() {
+		return dto;
+	}
+	public void setDto(List<FacetFieldDTO> dto) {
+		this.dto = dto;
+	}
+	
+
+	
+	
+
 }

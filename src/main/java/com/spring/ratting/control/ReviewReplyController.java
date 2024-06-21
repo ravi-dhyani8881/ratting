@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,7 +47,7 @@ public class ReviewReplyController {
 		document.addField("userId", userId);
 		document.addField("replyHeading", replyHeading);
 		document.addField("replyBody", replyBody);
-			
+			System.out.println("------------->");
 		solrRatting.addDocument(SolrUrls.replyUrl, document);		
 		
 		return model.addAttribute("Message", new ResponseMessage("Reply added Sucesfully", 201));		
