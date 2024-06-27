@@ -10,8 +10,11 @@ When you're done, you can delete the content in this README and update the file 
 
 
 docker login -u ravi88881 -p your_dockerhub_password
+
 docker build -t ravi88881/my-ratting-app-image:tagname -f Dockerfile .
+
 docker run -d -p 9090:8080 ravi88881/my-ratting-app-image:latest
+
 docker push ravi88881/my-ratting-app-image:tagname
 
 ---
