@@ -2,7 +2,7 @@ name: Java CI with Maven and Docker
 
 on:
   repository_dispatch:
-    types: [trigger-second-workflow]
+    types: [trigger-ratting-workflow]
 
 jobs:
   build:
