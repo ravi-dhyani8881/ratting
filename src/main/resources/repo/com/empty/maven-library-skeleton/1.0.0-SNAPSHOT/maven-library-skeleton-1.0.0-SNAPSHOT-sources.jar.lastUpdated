@@ -1,0 +1,30 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Mon Jan 29 11:58:19 GMT 2024
+@default-ArtifactoryReleases-https\://repository-ng.intranet.roche.com/artifactory/ipaas-releases/.lastUpdated=1699033751327
+https\://repo.spring.io/snapshot/.error=
+https\://maven.anypoint.mulesoft.com/api/v3/maven/.lastUpdated=1706529498671
+https\://repository-ng.intranet.roche.com/artifactory/ipaas-snapshots/.error=Could not transfer artifact com.empty\:maven-library-skeleton\:jar\:sources\:1.0.0-SNAPSHOT from/to ArtifactorySnapshots (https\://repository-ng.intranet.roche.com/artifactory/ipaas-snapshots/)\: repository-ng.intranet.roche.com
+https\://maven.anypoint.mulesoft.com/api/v3/maven/.error=
+http\://repository.mulesoft.org/releases/.error=
+https\://repository.mulesoft.org/nexus/content/repositories/public/.lastUpdated=1699033753338
+@default-ArtifactorySnapshots-https\://repository-ng.intranet.roche.com/artifactory/ipaas-snapshots/.lastUpdated=1699033751305
+https\://repository-ng.intranet.roche.com/artifactory/roche/.error=Could not transfer artifact com.empty\:maven-library-skeleton\:jar\:sources\:1.0.0-SNAPSHOT from/to Artifactory (https\://repository-ng.intranet.roche.com/artifactory/roche/)\: repository-ng.intranet.roche.com
+https\://maven.anypoint.mulesoft.com/api/v2/maven/.error=
+http\://repository.mulesoft.org/snapshots/.lastUpdated=1699033752950
+http\://repository.mulesoft.org/snapshots/.error=
+https\://repo1.maven.org/maven2/.error=
+http\://repository.mulesoft.org/releases/.lastUpdated=1699033752398
+https\://repository.mulesoft.org/nexus/content/repositories/public/.error=
+0e457066c91fff7265565a4b26662058120af9dd@default-Artifactory-https\://repository-ng.intranet.roche.com/artifactory/roche/.lastUpdated=1699033751300
+https\://maven.anypoint.mulesoft.com/api/v1/organizations/7f34e134-ef86-4a88-a34a-368f44ff5920/maven/.error=Could not transfer artifact com.empty\:maven-library-skeleton\:jar\:sources\:1.0.0-SNAPSHOT from/to RocheAnypointExchange (https\://maven.anypoint.mulesoft.com/api/v1/organizations/7f34e134-ef86-4a88-a34a-368f44ff5920/maven)\: Access denied to https\://maven.anypoint.mulesoft.com/api/v1/organizations/7f34e134-ef86-4a88-a34a-368f44ff5920/maven/com/empty/maven-library-skeleton/1.0.0-SNAPSHOT/maven-library-skeleton-1.0.0-SNAPSHOT-sources.jar. Error code 401, Unauthorized
+https\://repo1.maven.org/maven2/.lastUpdated=1672334560582
+file\:/Users/ravi.dhyani/Downloads/maven-library-skeleton-master/target/.lastUpdated=1672334561186
+file\:/Users/ravi.dhyani/Downloads/maven-library-skeleton-master/target/.error=
+https\://repo.spring.io/snapshot/.lastUpdated=1672334561171
+@default-RocheAnypointExchange-https\://maven.anypoint.mulesoft.com/api/v1/organizations/7f34e134-ef86-4a88-a34a-368f44ff5920/maven/.lastUpdated=1706529498184
+https\://maven.anypoint.mulesoft.com/api/v2/maven/.lastUpdated=1699033751833
+https\://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/.error=
+eb9295743cb371cfd36265deb83143f765dfc372@default-Artifactory-http\://repository-ng.intranet.roche.com/artifactory/roche/.lastUpdated=1706529497668
+https\://repository-ng.intranet.roche.com/artifactory/ipaas-releases/.error=Could not transfer artifact com.empty\:maven-library-skeleton\:jar\:sources\:1.0.0-SNAPSHOT from/to ArtifactoryReleases (https\://repository-ng.intranet.roche.com/artifactory/ipaas-releases/)\: repository-ng.intranet.roche.com
+https\://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/.lastUpdated=1706529499133
+http\://repository-ng.intranet.roche.com/artifactory/roche/.error=Could not transfer artifact com.empty\:maven-library-skeleton\:jar\:sources\:1.0.0-SNAPSHOT from/to Artifactory (http\://repository-ng.intranet.roche.com/artifactory/roche/)\: repository-ng.intranet.roche.com
