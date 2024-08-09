@@ -15,6 +15,8 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>17</java.version>
+		<maven.compiler.source>17</maven.compiler.source>
+       <maven.compiler.target>17</maven.compiler.target>
 		
 	</properties>
 	<dependencies>
@@ -36,10 +38,17 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.projectlombok</groupId> -->
+<!-- 			<artifactId>lombok</artifactId> -->
+<!-- 			<optional>true</optional> -->
+<!-- 		</dependency> -->
+
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+		    <groupId>org.projectlombok</groupId>
+		    <artifactId>lombok</artifactId>
+		    <version>1.18.30</version> <!-- Replace with the latest version -->
+		    <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -47,39 +56,37 @@
 			<scope>test</scope>
 		</dependency>
 
-<!-- https://mvnrepository.com/artifact/org.apache.solr/solr-solrj -->
-<dependency>
-    <groupId>org.apache.solr</groupId>
-    <artifactId>solr-solrj</artifactId>
-    <version>6.4.0</version>
-</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.solr/solr-solrj -->
+		<dependency>
+		    <groupId>org.apache.solr</groupId>
+		    <artifactId>solr-solrj</artifactId>
+		    <version>6.4.0</version>
+		</dependency>
 
 		<dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-hateoas</artifactId>
-    </dependency>
+	      <groupId>org.springframework.boot</groupId>
+	      <artifactId>spring-boot-starter-hateoas</artifactId>
+    	</dependency>
 		
-<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
-<dependency>
-    <groupId>io.springfox</groupId>
-    <artifactId>springfox-swagger2</artifactId>
-    <version>3.0.0</version>
-</dependency>
-
-<!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
-<dependency>
-    <groupId>joda-time</groupId>
-    <artifactId>joda-time</artifactId>
-    <version>2.12.2</version>
-</dependency>
-
-<dependency>
-    <groupId>com.empty</groupId>
-    <artifactId>maven-library-skeleton</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-
+		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-swagger2</artifactId>
+		    <version>3.0.0</version>
+		</dependency>
 		
+		<!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
+		<dependency>
+		    <groupId>joda-time</groupId>
+		    <artifactId>joda-time</artifactId>
+		    <version>2.12.2</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.empty</groupId>
+		    <artifactId>maven-library-skeleton</artifactId>
+		    <version>1.0.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		
@@ -99,8 +106,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-		
-		
 		
 		</plugins>
 	</build>
@@ -127,7 +132,7 @@
   <repository>
     <id>project.local</id>
     <name>project</name>
-    <url>file:/Users/ravi.dhyani/Downloads/maven-library-skeleton-master/target</url>
+    <url>file://${project.basedir}/src/main/resources/repo</url>
   </repository>
 		
 	</repositories>
