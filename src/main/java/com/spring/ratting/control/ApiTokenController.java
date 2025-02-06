@@ -54,15 +54,20 @@ public class ApiTokenController {
 		if(apiResponse instanceof RemoteSolrException )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500 ));	
+		//	return model.addAttribute("Message", new ResponseMessage("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500 ));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500).build());
 		}else if(apiResponse instanceof Exception) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));	
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error" , 500).build());
+			
 		}
 			
 		else if(((QueryResponse) apiResponse).getResults().size() ==0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Bad request user not exits or active yet", 404));
+		//	return model.addAttribute("Message", new ResponseMessage("Bad request user not exits or active yet", 404));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Bad request user not exits or active yet", 404).build());
+			
 		}else {
 			try {
 				payload.remove("userId");
@@ -77,7 +82,8 @@ public class ApiTokenController {
 				if(apiResponse instanceof Exception )
 				{
 					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+					return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error" , 500).build());
 				}
 				
 				if(((QueryResponse) apiResponse).getResults().size() >0) {
@@ -97,8 +103,11 @@ public class ApiTokenController {
 			model.addAttribute("apiKey", apiKey);
 			
 		//	return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201));
-			return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201, null, null,
-					null, null, "created"));
+		//	return model.addAttribute("Message", new ResponseMessage("Api key genrated sucesfully", 201, null, null,null, null, "created"));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Api key genrated sucesfully", 201)
+					.withID(userId)
+					.withResponseType("created")
+					.build());
 		}	
 	}
 	
@@ -122,15 +131,18 @@ public class ApiTokenController {
 		if(apiResponse instanceof RemoteSolrException )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500 ));	
+		//	return model.addAttribute("Message", new ResponseMessage("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500 ));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down"+ ((RemoteSolrException) apiResponse).getMessage() , 500).build());
 		}else if(apiResponse instanceof Exception) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));	
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));	
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 		}
 			
 		else if(((QueryResponse) apiResponse).getResults().size() ==0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Bad request user not exits or active yet", 404));
+		//	return model.addAttribute("Message", new ResponseMessage("Bad request user not exits or active yet", 404));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Bad request user not exits or active yet", 404).build());
 		}else {
 			try {
 				
@@ -140,7 +152,8 @@ public class ApiTokenController {
 				if(apiResponse instanceof Exception )
 				{
 					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+					return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 				}
 				
 							

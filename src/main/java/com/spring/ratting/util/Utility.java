@@ -42,7 +42,8 @@ public class Utility {
 	
 		if(template instanceof Exception )
 		{
-			return (T) model.addAttribute("Message", new ResponseMessage("Server down, Error", 500));
+		//	return (T) model.addAttribute("Message", new ResponseMessage("Server down, Error", 500));
+			return (T) model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 		}
 		return (T) model;
 	}

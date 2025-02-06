@@ -18,6 +18,7 @@ import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,8 +69,13 @@ public class CRUD {
 				
 		Object apiResponse = commonDocumentService.addDocumentAndExceptionByTemplate(payload, baseUrl+requestUri.substring(1, colonIndex));  
 		
-		  ResponseMessage successResponse = new ResponseMessage("Content added successfully", 201,null,null,payload.get("ID").toString(),null,null);
+	//	  ResponseMessage successResponse = new ResponseMessage("Content added successfully", 201,null,null,payload.get("ID").toString(),null,null,null);
           
+		  ResponseMessage successResponse= new ResponseMessage.Builder("Content added successfully", 201)
+			.withID(payload.get("ID").toString())
+			.withResponseType("created")
+			.build();
+		  
 		 return new ResponseEntity<T>((T) successResponse,HttpStatus.OK);
     }
 	
@@ -132,7 +138,16 @@ public class CRUD {
         if(facet.equals("true")) {
           advance=facetFieldsResponse.stream().map(this::mapToFacetFieldDTO).collect(Collectors.toList());
         }
-		  ResponseMessage successResponse = new ResponseMessage(null, 200,apiResponse.getResults().getNumFound(),apiResponse.getResults(),null,null,null,start,rows,advance);
+		//  ResponseMessage successResponse = new ResponseMessage(null, 200,apiResponse.getResults().getNumFound(),apiResponse.getResults(),null,null,null,start,rows,advance);
+		  
+		 ResponseMessage successResponse= new ResponseMessage.Builder("Content added successfully", 200)
+					.withNumFound(apiResponse.getResults().getNumFound())
+					.withDocument(apiResponse.getResults())
+					.withStart(start)
+					.withRow(rows)
+					.withDto(advance)
+					.withResponseType("created")
+					.build();
 		  
 		//  ResponseMessage(String responseMessage, int responseCode, Long numFound, SolrDocumentList document,String iD, String query, String responseType) 
 		 
@@ -154,14 +169,7 @@ public class CRUD {
     }
 	
 	
-	@GetMapping("/find")
-	public  HashMap<String, String>  test(
-			HttpServletRequest request, HttpServletResponse response
-			) {
-		HashMap<String, String> capitalCities = new HashMap<String, String>();
-		capitalCities.put("England", "London");
-		return capitalCities;
-	}
+	
 
 	
 	private static void printFacetResults(List<FacetField> facetFieldsResponse) {
@@ -199,10 +207,19 @@ public class CRUD {
 				
 		Object apiResponse = commonDocumentService.addDocumentAndExceptionByTemplate(payload2, baseUrl+requestUri.substring(1, colonIndex));  
 		
-		  ResponseMessage successResponse = new ResponseMessage("Content added successfully", 201,null,null,payload.get("ID").toString(),null,null);
+		 // ResponseMessage successResponse = new ResponseMessage("Content added successfully", 201,null,null,payload.get("ID").toString(),null,null);
           
+		  ResponseMessage successResponse= new ResponseMessage.Builder("Content added successfully", 201)
+					.withID(payload.get("ID").toString())
+					.build();
+		  
 		 return new ResponseEntity<T>((T) successResponse,HttpStatus.OK);
     }
+	
+	
+	
+
+	
 	
 	
 	 @GetMapping("/parse-response")

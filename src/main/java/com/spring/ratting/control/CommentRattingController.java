@@ -235,11 +235,15 @@ public class CommentRattingController implements SolrUrls {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403)
+					.build());
 		}
 		
 		String reviewExistQuery="ID:"+reviewId+ " && " + "reviewContentId:"+contentId;
@@ -248,10 +252,15 @@ public class CommentRattingController implements SolrUrls {
 		if(reviewExistResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error",500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error",500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
+			
 		}else if(((QueryResponse) reviewExistResponse).getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", 401));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid review/content Id", 401)
+					.build());
 		}else {
 			payload.put("ID", helpFullId);
 			payload.put("helpfulId", contentId+"_"+reviewId+"_"+helpfullUserId);
@@ -260,9 +269,16 @@ public class CommentRattingController implements SolrUrls {
 		if(apiHelpFullResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down,Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down,Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
+			
 		}else {
-			return model.addAttribute("Message", new ResponseMessage("Review Mark as helpfull sucesfully", 201, helpFullId));
+		//	return model.addAttribute("Message", new ResponseMessage("Review Mark as helpfull sucesfully", 201, helpFullId,"created"));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Review Mark as helpfull sucesfully", 201)
+					.withID(helpFullId)
+					.withResponseType("created")
+					.build());			
 		}
 		}
 	
@@ -289,11 +305,14 @@ public class CommentRattingController implements SolrUrls {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+																	.build());		
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403).build());	
 		}
 		
 		String reviewExistQuery="ID:"+reviewId+ " && " + "reviewContentId:"+contentId;
@@ -302,10 +321,12 @@ public class CommentRattingController implements SolrUrls {
 		if(reviewExistResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
 		}else if(((QueryResponse) reviewExistResponse).getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", 401));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid review/content Id", 401).build());
 		}else {
 			payload.put("ID", likeId);
 			payload.put("likeId", contentId+"_"+reviewId+"_"+likeUserId);
@@ -314,9 +335,14 @@ public class CommentRattingController implements SolrUrls {
 		if(apiLikeResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
 		}else {
-			return model.addAttribute("Message", new ResponseMessage("Review Mark as like sucesfully", 201, likeId));
+		//	return model.addAttribute("Message", new ResponseMessage("Review Mark as like sucesfully", 201, likeId,"created"));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Review Mark as like sucesfully", 201)
+					.withID(likeId)
+					.withResponseType("created")
+					.build());
 		}	
 	}
 	
@@ -335,7 +361,14 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("rows", noOfRecords);
 		searchCriteria.put("start", pageNumber);
 		QueryResponse queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
-		model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+	//	model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+		
+		ResponseMessage successResponse= new ResponseMessage.Builder(null, 201)
+				.withNumFound(queryResponse.getResults().getNumFound())
+				.withDocument(queryResponse.getResults())
+				.build();
+	
+		model.addAttribute(successResponse);
 		return model;
 	}
 	
@@ -352,7 +385,15 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
 		QueryResponse queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
-		model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+	
+	//	model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+	
+		ResponseMessage successResponse= new ResponseMessage.Builder(null, 201)
+				.withNumFound(queryResponse.getResults().getNumFound())
+				.withDocument(queryResponse.getResults())
+				.build();
+		
+		model.addAttribute(successResponse);
 		return model;
 	
 	}
@@ -567,11 +608,15 @@ public class CommentRattingController implements SolrUrls {
 		if(validationResult == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
+			
 			 
 		}else if(validationResult == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403).build());
 		}
 		
 		String queryContentExits="ID:"+(String)payload.get("reviewContentId");
@@ -585,14 +630,23 @@ public class CommentRattingController implements SolrUrls {
 		if(contentResponse instanceof Exception || reviewExitsResponse instanceof Exception)
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
+			
 			
 		}else if(((QueryResponse) contentResponse).getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return model.addAttribute("Message", new ResponseMessage("No content found to update, Invalid Content ID", 204));
+		//	return model.addAttribute("Message", new ResponseMessage("No content found to update, Invalid Content ID", 204));
+			return model.addAttribute("Message", new ResponseMessage.Builder("No content found to update, Invalid Content ID", 204)
+					.build());
+			
 		}else if( ((QueryResponse) reviewExitsResponse).getResults().size() >0 ) {
 			response.setStatus(HttpServletResponse.SC_CONFLICT);
-			return model.addAttribute("Message", new ResponseMessage("User Already added review to the content", 403));	 
+		//	return model.addAttribute("Message", new ResponseMessage("User Already added review to the content", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("User Already added review to the content", 403)
+														.build());
+			
 		}else {
 			String reviewId=Utility.getUniqueId();
 			
@@ -609,10 +663,13 @@ public class CommentRattingController implements SolrUrls {
 			if(contentResponse instanceof Exception || reviewExitsResponse instanceof Exception)
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
 				
 			}
-			return model.addAttribute("Message", new ResponseMessage("Review added Sucesfully", 201,reviewId));	
+		//	return model.addAttribute("Message", new ResponseMessage("Review added Sucesfully", 201,reviewId,"created"));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Review added Sucesfully", 201).withResponseType("created").withID(reviewId).build());
 		}
 		}
 	

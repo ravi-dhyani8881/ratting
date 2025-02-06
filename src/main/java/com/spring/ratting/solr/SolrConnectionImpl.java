@@ -196,13 +196,14 @@ public class SolrConnectionImpl implements SolrConnection {
 	
 	@Override
 	public <T> T updateDocumentByTemplate(String solrUrl,SolrInputDocument document) {
-	      SolrClient Solr = new HttpSolrClient(solrUrl);   
+	      SolrClient solr = new HttpSolrClient(solrUrl);   
 	      UpdateRequest updateRequest = new UpdateRequest();  
 	      updateRequest.setAction( UpdateRequest.ACTION.COMMIT, false, false);    	      
 	      UpdateResponse response = null;
 		try {
 				updateRequest.add( document);  
-				response = updateRequest.process(Solr); 
+				response = updateRequest.process(solr);
+				
 		} catch (SolrServerException | IOException  e) {
 			e.printStackTrace();
 			return (T) e;

@@ -65,7 +65,8 @@ public class UserController {
 		String userId=Utility.getUniqueId();		
 		
 			payload.put("ID", userId);
-			payload.put("userActivationKey", (String)payload.get("userActivationKey")!=null ? (String)payload.get("userActivationKey") : Utility.getUniqueId());
+			String userActivationKey=(String)payload.get("userActivationKey")!=null ? (String)payload.get("userActivationKey") : Utility.getUniqueId();
+			payload.put("userActivationKey", userActivationKey);
 			
 
 			if (emailExists((String)payload.get("email"))) {
@@ -83,11 +84,19 @@ public class UserController {
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}
 			response.setStatus(HttpServletResponse.SC_CREATED);
-			model.addAttribute("Message", new ResponseMessage("User added Sucesfully. Please activate through email activation code.", HttpServletResponse.SC_CREATED,null,null,null,null,"Added"));					
-		
+		//	model.addAttribute("Message", new ResponseMessage("User added Sucesfully. Please activate through email activation code.", HttpServletResponse.SC_CREATED,null,null,userId,null,"created"));					
+			
+			
+			 model.addAttribute("Message", new ResponseMessage.Builder("User added Sucesfully. Please activate through email activation code.", HttpServletResponse.SC_CREATED)
+					.withID(userId)
+					.withActivationCode(userActivationKey)
+					.withResponseType("created")
+					.build());
+			
 		return model;
 	}
 	
@@ -120,19 +129,30 @@ public class UserController {
 		
 		if (apiResponse.getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Invalid User", 401));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid User", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid User", 401).build());
 		} 
 		else if(apiResponse.getResults().get(0).get("userActivationKey").equals("Activated")) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			
-			return	model.addAttribute("Message", new ResponseMessage("User already activate through email activation code.",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));					
+		//	return	model.addAttribute("Message", new ResponseMessage("User already activate through email activation code.",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));					
+		
+			return model.addAttribute("Message", new ResponseMessage.Builder("User already activate through email activation code.", HttpServletResponse.SC_BAD_REQUEST)
+					.withID(userId)
+					.withResponseType("Bad request")
+					.build());
+			
 			
 		}
 		else if(!apiResponse.getResults().get(0).get("userActivationKey").equals(activationKey)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		
-			return	model.addAttribute("Message", new ResponseMessage("Invalid activation Key",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Invalid request"));					
-			
+		//	return	model.addAttribute("Message", new ResponseMessage("Invalid activation Key",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Invalid request"));					
+		
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid activation Key", HttpServletResponse.SC_BAD_REQUEST)
+					.withID(userId)
+					.withResponseType("Invalid request")
+					.build());
 			
 		//	return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", 401));
 		}
@@ -144,8 +164,13 @@ public class UserController {
 			commonDocumentService.updateDocumentByTemplate(solrDocument, url) ;
 		//	model.addAttribute("userId",userId);
 			response.setStatus(HttpServletResponse.SC_OK);
-			model.addAttribute("Message", new ResponseMessage("User activated Sucesfully.",  HttpServletResponse.SC_OK,null,null,null,null,"activated"));					
+		//	model.addAttribute("Message", new ResponseMessage("User activated Sucesfully.",  HttpServletResponse.SC_OK,null,null,null,null,"activated"));					
 			
+			
+			 model.addAttribute("Message", new ResponseMessage.Builder("User activated Sucesfully.", HttpServletResponse.SC_OK)
+					.withID(userId)
+					.withResponseType("activated")
+					.build());
 			
 			return model;
 		} 
@@ -170,7 +195,11 @@ public class UserController {
 			 userEmail = parts[1];
 		}catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return	model.addAttribute("Message", new ResponseMessage("Invalid activation code",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));
+		//	return	model.addAttribute("Message", new ResponseMessage("Invalid activation code",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));
+			
+		return	model.addAttribute("Message", new ResponseMessage.Builder("Invalid activation code.", HttpServletResponse.SC_BAD_REQUEST)
+																	.withResponseType("Bad request")
+																	.build());
 		}
 		
 		Map<String, String> searchCriteria=new HashMap<String,String>(); 
@@ -184,19 +213,30 @@ public class UserController {
 		
 		if (apiResponse.getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return model.addAttribute("Message", new ResponseMessage("Invalid User", 401));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid User", 401));
+			
+			return	model.addAttribute("Message", new ResponseMessage.Builder("Invalid User.", HttpServletResponse.SC_UNAUTHORIZED).build());
+			
 		} 
 		else if(apiResponse.getResults().get(0).get("userActivationKey").equals("Activated")) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			
-			return	model.addAttribute("Message", new ResponseMessage("User already activate through email activation code.",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));					
+		//	return	model.addAttribute("Message", new ResponseMessage("User already activate through email activation code.",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Bad request"));	
+			
+			return	model.addAttribute("Message", new ResponseMessage.Builder("User already activate through email activation code.", HttpServletResponse.SC_BAD_REQUEST)
+																	 .withResponseType("Bad request")
+																	 .build());
 			
 		}
 		else if(!apiResponse.getResults().get(0).get("userActivationKey").equals(userActivationKeyDecode)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		
-			return	model.addAttribute("Message", new ResponseMessage("Invalid activation Key",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Invalid request"));					
-			
+		//	return	model.addAttribute("Message", new ResponseMessage("Invalid activation Key",  HttpServletResponse.SC_BAD_REQUEST,null,null,null,null,"Invalid request"));					
+		
+			return	model.addAttribute("Message", new ResponseMessage.Builder("Invalid activation Key", HttpServletResponse.SC_BAD_REQUEST)
+					 .withResponseType("Invalid request")
+					 .build());
+
 			
 		//	return model.addAttribute("Message", new ResponseMessage("Invalid activation Key", 401));
 		}
@@ -208,9 +248,11 @@ public class UserController {
 			commonDocumentService.updateDocumentByTemplate(solrDocument, url) ;
 		//	model.addAttribute("userId",userId);
 			response.setStatus(HttpServletResponse.SC_OK);
-			model.addAttribute("Message", new ResponseMessage("User activated Sucesfully.",  HttpServletResponse.SC_OK,null,null,null,null,"activated"));					
+		//	model.addAttribute("Message", new ResponseMessage("User activated Sucesfully.",  HttpServletResponse.SC_OK,null,null,null,null,"activated"));					
 			
-			
+			 model.addAttribute("Message", new ResponseMessage.Builder("User activated Sucesfully.", HttpServletResponse.SC_OK)
+															  .withResponseType("activated")
+															  .build());
 			return model;
 		} 
 
@@ -228,7 +270,8 @@ public class UserController {
 		QueryResponse queryResponse = solrRatting.serachDocument(SolrUrls.userUrl, "ID:" + userId);
 		
 		if (queryResponse.getResults().size() == 0) {
-			return model.addAttribute("Message", new ResponseMessage("Invalid User id", 401));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid User id", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid User id", 401).build());
 		}
 		SolrDocument solrDoc = queryResponse.getResults().get(0);
 		SolrInputDocument document = new SolrInputDocument();
@@ -247,7 +290,8 @@ public class UserController {
 			document.addField("userActivationKey", (String) solrDoc.get("userActivationKey"));
 
 			solrRatting.updateDocument(SolrUrls.userUrl, document);
-			return model.addAttribute("Message", new ResponseMessage("User status updated Sucesfully", 200));
+		//	return model.addAttribute("Message", new ResponseMessage("User status updated Sucesfully", 200));
+			return model.addAttribute("Message", new ResponseMessage.Builder("User status updated Sucesfully", 200).build());
 		} catch (Exception e) {
 			return model.addAttribute("Message", e.getMessage());
 		}
@@ -269,7 +313,9 @@ public class UserController {
 			QueryResponse queryResponse = solrRatting.serachDocument(SolrUrls.userUrl, "ID:" + userId);
 			
 			if (queryResponse.getResults().size() == 0) {
-				return model.addAttribute("Message", new ResponseMessage("Invalid User id", 401));
+			//	return model.addAttribute("Message", new ResponseMessage("Invalid User id", 401));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Invalid User id", 401).build());
+				
 			}
 			SolrDocument solrDoc = queryResponse.getResults().get(0);
 			SolrInputDocument document = new SolrInputDocument();
@@ -286,11 +332,11 @@ public class UserController {
 			document.addField("password", password);
 			document.addField("userStatus", (String) solrDoc.get("userStatus"));
 			document.addField("userActivationKey", (String) solrDoc.get("userActivationKey"));
-
 			solrRatting.updateDocument(SolrUrls.userUrl, document);
 
-			return model.addAttribute("Message", new ResponseMessage(
-					"User updated Sucesfully.", 200));
+		//	return model.addAttribute("Message", new ResponseMessage("User updated Sucesfully.", 200));
+		return	 model.addAttribute("Message", new ResponseMessage.Builder("User updated Sucesfully.", 200)
+					  											  .build());
 		} catch (Exception e) {
 			return model.addAttribute("Message", e.getMessage());
 		}
@@ -314,10 +360,13 @@ public class UserController {
 		String query = "methodName:" + (String) payload.get("methodName");
 		if (commonDocumentService.SearchByQuery(query, protocolUrl).getResults().getNumFound() > 0) {
 			System.out.println("Already exist");
-			return model.addAttribute("Message", new ResponseMessage("Method name already added", 403));
+		//	return model.addAttribute("Message", new ResponseMessage("Method name already added", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Method name already added", 403).build());	
+			
 		} else {
 			String methodId = commonDocumentService.addDocument(payload, protocolUrl);
-			return model.addAttribute("Message", new ResponseMessage("Method added Sucesfully", 201));
+		//	return model.addAttribute("Message", new ResponseMessage("Method added Sucesfully", 201));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Method added Sucesfully", 201).build());		
 		}
 	}
 	
@@ -340,24 +389,33 @@ public class UserController {
 		
 		ModelMap model = new ModelMap();
 		//payload.containsKey("reviewUserId");
+		String userId=null;
 		
 		Map<String, String> searchCriteria=new HashMap<String,String>(); 
 		searchCriteria.put("q", "((email:"+user.getUsername()+") && ( email:"+user.getUsername()+" && password:"+user.getPassword()+"))");
-		searchCriteria.put("fl", "userStatus");
+		searchCriteria.put("fl", "userStatus,ID");
 		
 		
 		
 		QueryResponse apiResponse =commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+		
 		((QueryResponse) apiResponse).getResults().forEach((C)-> {
 		
-			if(C.get("userStatus").equals("I")){
-				model.addAttribute("Message", new ResponseMessage("User is inactive. Please activate user account.", 403,null,null,null,null,"INACTIVE"));	
+			if(C.get("userStatus").equals("I")){		
+			//	model.addAttribute("Message", new ResponseMessage("User is inactive. Please activate user account.", 403,null,null,null,null,"INACTIVE"));
+				model.addAttribute("Message", new ResponseMessage.Builder("User is inactive. Please activate user account.", 403)
+																 .withResponseType("INACTIVE")										
+																 .build());	
+														
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				
 		}else {
 			response.setStatus(HttpServletResponse.SC_OK);
-			model.addAttribute("Message", new ResponseMessage("User authenticated sucesfully.", HttpServletResponse.SC_OK,null,null,null,null,"AUTHENTICATED"));					
-			
+		//	model.addAttribute("Message", new ResponseMessage("User authenticated sucesfully.", HttpServletResponse.SC_OK,null,null,null,null,"AUTHENTICATED"));					
+			model.addAttribute("Message", new ResponseMessage.Builder("User authenticated sucesfully.", HttpServletResponse.SC_OK)
+															 .withID(C.get("ID").toString())
+															 .withResponseType("AUTHENTICATED")										
+															 .build());		
 		}
 			}
 		
@@ -365,7 +423,11 @@ public class UserController {
 		if(apiResponse.getResults().size()==0) {
 		
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		model.addAttribute("Message", new ResponseMessage("User / password incorrect", HttpServletResponse.SC_UNAUTHORIZED,null,null,null,null,"UNAUTHORIZED"));
+	//	model.addAttribute("Message", new ResponseMessage("User / password incorrect", HttpServletResponse.SC_UNAUTHORIZED,null,null,null,null,"UNAUTHORIZED"));
+	
+		model.addAttribute("Message", new ResponseMessage.Builder("User / password incorrect", HttpServletResponse.SC_UNAUTHORIZED)
+				 .withResponseType("UNAUTHORIZED")										
+				 .build());	
 		}
 		return model;	
 	}
@@ -394,11 +456,16 @@ public class UserController {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500)										
+					 												.build());	
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			 return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401)										
+						.build());
 		}else {
 		//	query=Utility.getQuery(query, userId);
 			Map<String, String> searchCriteria=new HashMap<String,String>(); 
@@ -413,7 +480,10 @@ public class UserController {
 			 if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+				
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500)										
+						.build());
 			}else {
 				
 				((QueryResponse) apiResponse).getResults().forEach((K)-> {
