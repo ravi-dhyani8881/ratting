@@ -90,7 +90,7 @@ public class ContentController {
 		}
 		try {
 			payload.put("ID", contentId);
-			payload.put("custId", userId);
+		//	payload.put("custId", userId);
 			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, baseUrl+requestUri.substring(1, colonIndex));
 			
 			if(apiResponse instanceof Exception )
