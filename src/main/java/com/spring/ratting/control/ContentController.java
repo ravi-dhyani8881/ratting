@@ -72,9 +72,7 @@ public class ContentController {
 		ModelMap model=new ModelMap();
 	//	String contentId=Utility.getUniqueId();
 		
-		String contentId = payload.containsKey("ID") && payload.get("ID") != null 
-                ? payload.get("ID").toString() 
-                : Utility.getUniqueId();
+		String contentId = payload.containsKey("ID") && payload.get("ID") != null ? payload.get("ID").toString() : Utility.getUniqueId();
 
 		
 		String requestUri = request.getRequestURI();
@@ -97,8 +95,9 @@ public class ContentController {
 			
 			if (!payload.containsKey("ID") || payload.get("ID") == null) {
 		        payload.put("ID", contentId);
+		        
 		    }
-			
+		 //       payload.put("ID", contentId);
 		//	payload.put("custId", userId);
 			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, baseUrl+requestUri.substring(1, colonIndex));
 			
@@ -106,9 +105,9 @@ public class ContentController {
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
-				
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());	
 			}
-			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
+			
 		}
 		catch(Exception e)
 		{
