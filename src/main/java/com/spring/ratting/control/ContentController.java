@@ -70,7 +70,12 @@ public class ContentController {
 			@RequestHeader(name="X-USER-ID", required=true) String userId) {
 		
 		ModelMap model=new ModelMap();
-		String contentId=Utility.getUniqueId();
+	//	String contentId=Utility.getUniqueId();
+		
+		String contentId = payload.containsKey("ID") && payload.get("ID") != null 
+                ? payload.get("ID").toString() 
+                : Utility.getUniqueId();
+
 		
 		String requestUri = request.getRequestURI();
 		System.out.println("--->"+requestUri.substring(0));
@@ -89,7 +94,11 @@ public class ContentController {
 			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403).build());
 		}
 		try {
-			payload.put("ID", contentId);
+			
+			if (!payload.containsKey("ID") || payload.get("ID") == null) {
+		        payload.put("ID", contentId);
+		    }
+			
 		//	payload.put("custId", userId);
 			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, baseUrl+requestUri.substring(1, colonIndex));
 			
@@ -97,8 +106,9 @@ public class ContentController {
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
-				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
+				
 			}
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 		}
 		catch(Exception e)
 		{
