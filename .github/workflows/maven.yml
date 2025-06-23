@@ -15,7 +15,7 @@ jobs:
         ref: origin/redhat
         
     - name: Log event payload
-      run: echo '${{ toJson(github.event.client_payload) }}'
+      run: echo '${{ toJson(github.event.client_payload) }}' > event_payload.json
      
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -47,5 +47,16 @@ jobs:
         echo "📁 In correct directory: $PWD"
         echo "📂 Listing files:"
         ls -lthr
-        docker build -t ravi88881/my-ratting-app-image:latest .
-        docker push ravi88881/my-ratting-app-image:latest
+        projectName=$(jq -r '.projectName' event_payload.json)
+        organizationID=$(jq -r '.organizationID' event_payload.json)
+        subOrganizationID=$(jq -r '.subOrganizationID' event_payload.json)
+        enviromentID=$(jq -r '.enviromentID' event_payload.json)
+        graphID=$(jq -r '.graphID' event_payload.json)
+        version=$(jq -r '.version' event_payload.json)
+        # Convert values to lowercase & sanitize (optional)
+        image_name="$(echo ${organizationID}-${subOrganizationID}-${enviromentID}-${graphID}-rest  | tr '[:upper:]' '[:lower:]' | tr -d ' ' | tr '/' '-')"
+         # Define full image name with version tag
+        full_image_name="ravi8881/${image_name}:${version}"
+        
+        docker build -t $full_image_name .
+        docker push $full_image_name
