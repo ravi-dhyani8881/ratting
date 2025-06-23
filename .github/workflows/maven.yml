@@ -38,6 +38,6 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        cd ratting 
+        cd ratting/ratting 
         docker build -t ravi88881/my-ratting-app-image:latest .
         docker push ravi88881/my-ratting-app-image:latest
