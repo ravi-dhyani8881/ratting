@@ -45,6 +45,7 @@ jobs:
     - name: Build and push Docker image
       run: |
         echo "📁 In correct directory: $PWD"
-        echo "📁 In correct directory: ls -lthr"
+        echo "📂 Listing files:"
+        ls -lthr
         docker build -f ../Dockerfile -t ravi88881/my-ratting-app-image:latest .
         docker push ravi88881/my-ratting-app-image:latest
