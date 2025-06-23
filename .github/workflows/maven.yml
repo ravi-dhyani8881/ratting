@@ -36,6 +36,12 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: List workspace structure
+      run: |
+        echo "📁 Listing workspace:"
+        pwd
+        ls -R
+
     - name: Build and push Docker image
       run: |
         cd ratting/ratting 
