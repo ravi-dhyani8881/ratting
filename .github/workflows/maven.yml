@@ -51,12 +51,12 @@ jobs:
         echo "📁 In correct directory: $PWD"
         echo "📂 Listing files:"
         ls -lthr
-        projectName=$(jq -r '.projectName' event_payload.json)
-        organizationID=$(jq -r '.organizationID' event_payload.json)
-        subOrganizationID=$(jq -r '.subOrganizationID' event_payload.json)
-        enviromentID=$(jq -r '.enviromentID' event_payload.json)
-        graphID=$(jq -r '.graphID' event_payload.json)
-        version=$(jq -r '.version' event_payload.json)
+        projectName=$(jq -r '.client_payload.data.projectName' event_payload.json)
+        organizationID=$(jq -r '.client_payload.data.organizationID' event_payload.json)
+        subOrganizationID=$(jq -r '.client_payload.data.subOrganizationID' event_payload.json)
+        enviromentID=$(jq -r '.client_payload.data.enviromentID' event_payload.json)
+        graphID=$(jq -r '.client_payload.data.graphID' event_payload.json)
+        version=$(jq -r '.client_payload.data.version' event_payload.json)
         # Convert values to lowercase & sanitize (optional)
         image_name="$(echo ${organizationID}-${subOrganizationID}-${enviromentID}-${graphID}-rest  | tr '[:upper:]' '[:lower:]' | tr -d ' ' | tr '/' '-')"
          # Define full image name with version tag
