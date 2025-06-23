@@ -15,7 +15,11 @@ jobs:
         ref: origin/redhat
         
     - name: Log event payload
-      run: echo '${{ toJson(github.event.client_payload.data) }}' > event_payload.json
+      run: echo '${{ toJson(github.event.client_payload) }}' > event_payload.json
+
+    - name: Print event_payload.json
+      run: cat event_payload.json
+
      
     - name: Set up JDK 17
       uses: actions/setup-java@v4
