@@ -2,25 +2,25 @@ package com.spring.ratting.util;
 
 public interface SolrUrls {
 
-	static String solrAnalyticUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/analytic";
+	static String solrAnalyticUrl = "http://solr-service:8983/solr/analytic";
 	
-	static String helpFullUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/helpFull";
+	static String helpFullUrl = "http://solr-service:8983/solr/helpFull";
 	
-	static String likelUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/like";
+	static String likelUrl = "http://solr-service:8983/solr/like";
 	
-	static String solrCommentRattingAnalyticUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/commentRattingAnalytic2";
+	static String solrCommentRattingAnalyticUrl = "http://solr-service:8983/solr/commentRattingAnalytic2";
 
-	static String replyUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/reply";	
+	static String replyUrl = "http://solr-service:8983/solr/reply";	
 	
-	static String userUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/users";	
+	static String userUrl = "http://solr-service:8983/solr/users";	
 	
 	static String verifyUserUrl = "http://localhost:8080/users/verifyUser?userActivationKey=";	
 	
-	static String contentUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/content";
+	static String contentUrl = "http://solr-service:8983/solr/content";
 	
-	static String reviewUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/review";	
+	static String reviewUrl = "http://solr-service:8983/solr/review";	
 	
-	static String protocolUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/msgProtocol";
+	static String protocolUrl = "http://solr-service:8983/solr/msgProtocol";
 	
-	static String apiKeyUrl = "http://solr-docker-help-ravi-happy28-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com/solr/apiKey";	
+	static String apiKeyUrl = "http://solr-service:8983/solr/apiKey";	
 }
