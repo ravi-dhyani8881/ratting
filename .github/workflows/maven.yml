@@ -28,6 +28,14 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Clone Maven Library
+      run: git clone https://github.com/ravi-dhyani8881/maven-library-skeleton-master.git
+
+    - name: Build and Install Local Maven Library
+      run: |
+        cd maven-library-skeleton-master
+        mvn clean install -DskipTests
+
     - name: Build with Maven
       run: mvn clean install -DskipTests -X
 
