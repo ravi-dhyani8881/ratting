@@ -28,4 +28,5 @@ public interface SolrUrls {
 	
 	static String sampleUrl = baseUrl+"Solr_sample";
 //	static String sampleUrl = baseUrl+"contact";
+
 }
