@@ -2,8 +2,6 @@ package com.spring.ratting.domain;
 
 import org.apache.solr.common.SolrDocument;
 
-
-
 public class InnerReviews {
 
 	public SolrDocument reviews;

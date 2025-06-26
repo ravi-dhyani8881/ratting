@@ -12,7 +12,7 @@ import org.apache.solr.common.SolrDocument;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -42,14 +42,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import springfox.documentation.annotations.ApiIgnore;
 
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 
-@Api(value = "Content Mangment System" , description = "This service used to perform operation on Content.")
+@Api(value = "Content Mangment System" , description = "Service used to perform operation on Content.", tags = "Content")
 @RestController
 @ExposesResourceFor(ContentController.class)
 @RequestMapping("*/")
@@ -61,43 +59,66 @@ public class ContentController {
 	@Autowired
 	ValidationService validationService;
 	
-    String url=SolrUrls.contentUrl;
+  //  String url=SolrUrls.contentUrl;
+    
+	String baseUrl=SolrUrls.baseUrl;
 		
-	@ApiOperation(value = "This service used to add content")
+	@ApiOperation(value = "Service used to add content")
 	@RequestMapping(value="/addContent" , method=RequestMethod.POST)
 	public ModelMap  addContent(@RequestBody Map<String, Object> payload , HttpServletResponse response, HttpServletRequest request,
 			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
 			@RequestHeader(name="X-USER-ID", required=true) String userId) {
 		
 		ModelMap model=new ModelMap();
-		String contentId=Utility.getUniqueId();
+	//	String contentId=Utility.getUniqueId();
 		
+		String contentId = payload.containsKey("ID") && payload.get("ID") != null ? payload.get("ID").toString() : Utility.getUniqueId();
+
+		
+		String requestUri = request.getRequestURI();
+		System.out.println("--->"+requestUri.substring(0));
+		
+		int colonIndex = Utility.findNthIndexOf(requestUri, '/', 2);
 		
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+	//		 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403).build());
 		}
 		try {
-			payload.put("ID", contentId);
-			payload.put("custId", userId);
-			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, url);
+			
+			if (!payload.containsKey("ID") || payload.get("ID") == null) {
+		        payload.put("ID", contentId);
+		        
+		    }
+		 //       payload.put("ID", contentId);
+		//	payload.put("custId", userId);
+			Object apiResponse = commonDocumentService.addDocumentByTemplate(payload, baseUrl+requestUri.substring(1, colonIndex));
 			
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());	
 			}
+			
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
-		return model.addAttribute("Message", new ResponseMessage("Content added Sucesfully", "Added",contentId));
+	//	return model.addAttribute("Message", new ResponseMessage("Content added Sucesfully", 201,contentId,"created"));
+		
+		return model.addAttribute("Message", new ResponseMessage.Builder("Content added Sucesfully", 201)
+																.withID(contentId)
+																.withResponseType("created")
+																.build());
 	}
 	
 	@ApiOperation(value = "This service used to update content")
@@ -109,38 +130,58 @@ public class ContentController {
 		ModelMap model=new ModelMap();
 		String contentId=null;
 		
+		System.out.println("------updateContent----->");
+		String requestUri = request.getRequestURI();
+		int colonIndex = Utility.findNthIndexOf(requestUri, '/', 2);
+		
+		
+		
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
-			 
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
+			
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
+			
+			 
 		} else if(!payload.containsKey("ID")) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			 return model.addAttribute("Message", new ResponseMessage("Unique ID missing from request", "Invalid request"));
+			// return model.addAttribute("Message", new ResponseMessage("Unique ID missing from request, Invalid ID", 400));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Unique ID missing from request, Invalid ID", 400).build());
 		}
 		
 		try {
 			contentId=(String) payload.get("ID");
-			Object apiResponse =commonDocumentService.advanceQueryByTemplate("ID:"+contentId, url);
+			Object apiResponse =commonDocumentService.advanceQueryByTemplate("ID:"+contentId, baseUrl+requestUri.substring(1, colonIndex));
 					
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}else if(((QueryResponse) apiResponse).getResults().size() == 0) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				return model.addAttribute("Message", new ResponseMessage("No Unique ID to update", "Invalid ID"));
+			//	return model.addAttribute("Message", new ResponseMessage("No Unique ID to update, Invalid ID", 400));
+				return model.addAttribute("Message", new ResponseMessage.Builder("No Unique ID to update, Invalid ID", 400).build());
+				
 			}else {
 				SolrDocument solrDocument = ((QueryResponse) apiResponse).getResults().get(0);
-				apiResponse =commonDocumentService.updateDocumentByTemplate(this.createDoc(payload, solrDocument), url) ;	
+				apiResponse =commonDocumentService.updateDocumentByTemplate(this.createDoc(payload, solrDocument), baseUrl+requestUri.substring(1, colonIndex)) ;	
 			}			
-			return model.addAttribute("Message", new ResponseMessage("Content updated Sucesfully", "Added",contentId));
+		//	return model.addAttribute("Message", new ResponseMessage("Content updated Sucesfully", 201,contentId,"created"));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Content updated Sucesfully", 201)
+																	.withID(contentId)
+																	.withResponseType("created")
+																	.build());
 		}catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 		}	
 	}
 	
@@ -163,16 +204,25 @@ public class ContentController {
 		Object apiDetails=null;
 		String reviewDetailsQuery=null;
 		
+		String requestUri = request.getRequestURI();
+        System.out.println("--->"+requestUri.substring(0));
+		
+		int colonIndex = Utility.findNthIndexOf(requestUri, '/', 2);
+		
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
+			
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
+			
 		}else {
-			query=Utility.getQuery(query, userId);
+	//		query=Utility.getQuery(query, userId);
 			Map<String, String> searchCriteria=new HashMap<String,String>(); 
 			searchCriteria.put("q", query);
 			searchCriteria.put("rows", rows);
@@ -181,11 +231,13 @@ public class ContentController {
 			searchCriteria.put("fq", fq);
 			searchCriteria.put("sort", sort);
 			
-			 apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+			 apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, baseUrl+requestUri.substring(1, colonIndex));
 			 if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
+				
 			}else {
 				
 				((QueryResponse) apiResponse).getResults().forEach((K)-> {
@@ -201,6 +253,73 @@ public class ContentController {
 		}
 	}
 	
+	@ApiOperation(value = "This service used to search content by query")
+	@RequestMapping(value="/searchContentById" , method=RequestMethod.GET)
+	public ModelMap  searchContentById(@RequestParam(name = "Id", required = true) String query,
+			@RequestParam(name = "rows",  defaultValue = "8", required = false) String rows ,
+			@RequestParam(name = "start",defaultValue = "0", required = false) String start,
+			@RequestParam(name = "fl" ,defaultValue = "" , required = false) String fl ,
+			@RequestParam(name = "fq" ,defaultValue = "" , required = false) String fq ,
+			//default value asc|desc
+			@RequestParam(name = "sort" ,defaultValue = "" , required = false) String sort,
+			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
+			@RequestHeader(name="X-USER-ID", required=true) String userId,
+		
+			HttpServletRequest request, HttpServletResponse response
+			) {
+		ModelMap model=new ModelMap();
+		Object apiResponse=null;
+		Object apiDetails=null;
+		String reviewDetailsQuery=null;
+		
+		String requestUri = request.getRequestURI();
+        System.out.println("--->"+requestUri.substring(0));
+		
+		int colonIndex = Utility.findNthIndexOf(requestUri, '/', 2);
+		
+		if(validationService.validateApiKey(apiKey, userId) == 500 )
+		{	
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build()); 
+		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
+		}else {
+			query=Utility.getQuery(query, userId);
+			Map<String, String> searchCriteria=new HashMap<String,String>(); 
+			searchCriteria.put("q", query);
+			searchCriteria.put("rows", rows);
+			searchCriteria.put("start", start);
+			searchCriteria.put("fl", fl);
+			searchCriteria.put("fq", fq);
+			searchCriteria.put("sort", sort);
+			
+			 apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, baseUrl+requestUri.substring(1, colonIndex));
+			 if(apiResponse instanceof Exception )
+			{
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
+			}else {
+				
+				((QueryResponse) apiResponse).getResults().forEach((K)-> {
+					System.out.println(K.get("ID"));							
+				});
+				
+ //				 To check number of review in Content
+//				 apiDetailsQuery="reviewContentId:"+((QueryResponse) apiResponse).getResults().get;
+//				 apiDetails=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, url);
+				
+			//	return model.addAttribute("result",((QueryResponse) apiResponse).getResults().get(0));
+				return model.addAllAttributes(((QueryResponse) apiResponse).getResults().get(0))	;
+			//return	model.addAttribute(((QueryResponse) apiResponse).getResults().get(0));
+			//	return model.addAllAttributes(((QueryResponse) apiResponse).getResults())	;
+			}
+		}
+	}
+	
 	@ApiOperation(value = "This service delete content by query")
 	@RequestMapping(value="/deleteByQuery" , method=RequestMethod.DELETE)
 	public ModelMap  deleteByQuery(@RequestParam(name = "query", required = true) String query , 
@@ -210,30 +329,43 @@ public class ContentController {
 		
 		ModelMap model=new ModelMap();
 		
+		String requestUri = request.getRequestURI();
+		int colonIndex = Utility.findNthIndexOf(requestUri, '/', 2);
+		
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+			 // return model.addAttribute("Message", new ResponseMessage("Invalid Api Key",401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
+			
 		}
 		
-		Object apiResponse = commonDocumentService.deleteDocumentByTemplate(query,url);
+		Object apiResponse = commonDocumentService.deleteDocumentByTemplate(query, baseUrl+requestUri.substring(1, colonIndex));
 		
 		if(apiResponse instanceof Exception )
 		{
 			if(((Exception) apiResponse).getMessage().contains("SyntaxError")) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				return model.addAttribute("Message", new ResponseMessage("Invalid Query or SyntaxError", "SyntaxError"));
+			//	return model.addAttribute("Message", new ResponseMessage("Invalid Query or SyntaxError, SyntaxError", 401));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
+				
 			}else{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));	
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}
 		}
-		return model.addAttribute("Message", new ResponseMessage("Content deleted Sucesfully with Query", "Deleted",query));
-	}
+	//	return model.addAttribute("Message", new ResponseMessage("Content deleted Sucesfully with Query", 200,query,"deleted"));
+		return model.addAttribute("Message", new ResponseMessage.Builder("Content deleted Sucesfully with Query", 200)
+																.withQuery(query)
+																.withResponseType("deleted")
+																.build());
+													}
 	
 	@ApiIgnore
 	@ApiOperation(value = "This service delete content by query")
@@ -307,11 +439,29 @@ public class ContentController {
 		return "ok";
 	}
 
-	public Map<String, Object> createDoc(Map<String, Object> payload , SolrDocument solrDocument) {
-		solrDocument.forEach((k,v) ->{
-	 		payload.put(k, v);
-	 	});
-		return payload;
+//	public Map<String, Object> createDoc(Map<String, Object> payload , SolrDocument solrDocument) {
+//		solrDocument.forEach((k,v) ->{
+//	 		payload.put(k, v);
+//	 	});
+//		return payload;
+//	}
+
+	
+	
+	public Map<String, Object> createDoc(Map<String, Object> payload, SolrDocument solrDocument) {
+	    // Create a new HashMap to store the merged result
+	    Map<String, Object> updatedDoc = new HashMap<>();
+
+	    // Copy all existing Solr document fields
+	    solrDocument.forEach(updatedDoc::put);
+
+	    // Overwrite with values from payload (new updates)
+	    updatedDoc.putAll(payload);
+
+	    return updatedDoc;
 	}
 
+
+	
+	
 }

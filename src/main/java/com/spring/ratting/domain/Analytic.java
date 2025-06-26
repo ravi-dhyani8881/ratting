@@ -18,7 +18,4 @@ public class Analytic {
 		super();
 		this.data = data;
 	}
-	
-	
-	
 }

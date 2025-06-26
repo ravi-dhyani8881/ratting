@@ -1,16 +1,27 @@
 package com.spring.ratting.control;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
-
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +38,8 @@ import com.spring.ratting.validation.ValidationService;
 
 import io.swagger.annotations.Api;
 
-@Api(value = "Review and ratting managment system", description = "Service used for operation for review and ratting")
+
+@Api(value = "Review and ratting managment system", description = "Service used for add review and ratting on content", tags = "Comments")
 @RestController
 @ExposesResourceFor(CommentRattingController.class)
 @RequestMapping("review-ratting")
@@ -48,11 +60,15 @@ public class CommentRattingController implements SolrUrls {
 	@Autowired
 	SolrConnection solrConnection;
 	
+	
+	
+	
     String reviewUrl=SolrUrls.reviewUrl;
     String contentUrl=SolrUrls.contentUrl;
     String solrAnalyticUrl=SolrUrls.solrAnalyticUrl;
     String helpFullUrl=SolrUrls.helpFullUrl;
     String likeUrl=SolrUrls.likelUrl;
+    String sampleUrl=SolrUrls.sampleUrl;
 
     /**
     
@@ -219,11 +235,15 @@ public class CommentRattingController implements SolrUrls {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403)
+					.build());
 		}
 		
 		String reviewExistQuery="ID:"+reviewId+ " && " + "reviewContentId:"+contentId;
@@ -232,10 +252,15 @@ public class CommentRattingController implements SolrUrls {
 		if(reviewExistResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error",500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
+			
 		}else if(((QueryResponse) reviewExistResponse).getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", "Invalid review/content Id"));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid review/content Id", 401)
+					.build());
 		}else {
 			payload.put("ID", helpFullId);
 			payload.put("helpfulId", contentId+"_"+reviewId+"_"+helpfullUserId);
@@ -244,9 +269,16 @@ public class CommentRattingController implements SolrUrls {
 		if(apiHelpFullResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down,Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
+			
 		}else {
-			return model.addAttribute("Message", new ResponseMessage("Review Mark as helpfull sucesfully", "Added", helpFullId));
+		//	return model.addAttribute("Message", new ResponseMessage("Review Mark as helpfull sucesfully", 201, helpFullId,"created"));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Review Mark as helpfull sucesfully", 201)
+					.withID(helpFullId)
+					.withResponseType("created")
+					.build());			
 		}
 		}
 	
@@ -273,11 +305,14 @@ public class CommentRattingController implements SolrUrls {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+																	.build());		
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403).build());	
 		}
 		
 		String reviewExistQuery="ID:"+reviewId+ " && " + "reviewContentId:"+contentId;
@@ -286,10 +321,12 @@ public class CommentRattingController implements SolrUrls {
 		if(reviewExistResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
 		}else if(((QueryResponse) reviewExistResponse).getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", "Invalid review/content Id"));
+		//	return model.addAttribute("Message", new ResponseMessage("Invalid review/content Id", 401));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid review/content Id", 401).build());
 		}else {
 			payload.put("ID", likeId);
 			payload.put("likeId", contentId+"_"+reviewId+"_"+likeUserId);
@@ -298,9 +335,14 @@ public class CommentRattingController implements SolrUrls {
 		if(apiLikeResponse instanceof Exception )
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
 		}else {
-			return model.addAttribute("Message", new ResponseMessage("Review Mark as like sucesfully", "Added", likeId));
+		//	return model.addAttribute("Message", new ResponseMessage("Review Mark as like sucesfully", 201, likeId,"created"));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Review Mark as like sucesfully", 201)
+					.withID(likeId)
+					.withResponseType("created")
+					.build());
 		}	
 	}
 	
@@ -318,8 +360,15 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("q", query);
 		searchCriteria.put("rows", noOfRecords);
 		searchCriteria.put("start", pageNumber);
-		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
-		model.addAttribute(new ResponseMessage(null, null,queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+	//	model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+		
+		ResponseMessage successResponse= new ResponseMessage.Builder(null, 201)
+				.withNumFound(queryResponse.getResults().getNumFound())
+				.withDocument(queryResponse.getResults())
+				.build();
+	
+		model.addAttribute(successResponse);
 		return model;
 	}
 	
@@ -335,12 +384,211 @@ public class CommentRattingController implements SolrUrls {
 		searchCriteria.put("q", query);
 		searchCriteria.put("rows", Integer.toString(noOfRecords));
 		searchCriteria.put("start", Integer.toString(pageNumber));
-		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
-		model.addAttribute(new ResponseMessage(null, null,queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+	
+	//	model.addAttribute(new ResponseMessage(queryResponse.getResults().getNumFound(), queryResponse.getResults()));
+	
+		ResponseMessage successResponse= new ResponseMessage.Builder(null, 201)
+				.withNumFound(queryResponse.getResults().getNumFound())
+				.withDocument(queryResponse.getResults())
+				.build();
+		
+		model.addAttribute(successResponse);
+		return model;
+	
+	}
+	
+	// To check how many likes in an reviews 
+	
+	@RequestMapping(value="/findAnalyticLikeOnReview" , method=RequestMethod.GET)
+	public ModelMap findAnalyticOnReview(@RequestParam(name = "contentId", required = true) String contentId,
+			@RequestParam(name = "reviewId", required = true) String reviewId,
+	@RequestParam(name = "noOfRecords", required = true) 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();
+		String query="(contentId:"+contentId+" AND "+"reviewId:"+reviewId+")";
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		searchCriteria.put("facet", "true");
+		searchCriteria.put("facet.field", "like");
+	//	searchCriteria.put("fl", "userId");
+		
+		QueryResponse queryResponse = null;
+	    queryResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, likelUrl);
+	
+		
+		Map<String, Long> fieldCounts = new HashMap<>();
+		
+		 List<FacetField> clusterFields =queryResponse.getFacetFields();
+		
+	
+		 List<String> clusterResponse = new ArrayList<String>();
+		 
+			    FacetField clusterFacets = clusterFields.get(0);
+			    for (FacetField.Count clusterCount : clusterFacets.getValues()) {
+			      clusterResponse.add(clusterCount.getName());
+			      clusterCount.getCount();
+			      
+			      fieldCounts.put(clusterCount.getName(), clusterCount.getCount());
+			     
+			      System.out.println("-------clusterCount.getCount()-->"+clusterCount.getCount()+"==============clusterCount.getName()========>"+clusterCount.getName());
+			    
+			    
+			    }
+			  
+			
+		 model.addAttribute("Total Count",queryResponse.getResults().getNumFound());
+	//	 model.addAttribute("Response", ((QueryResponse) queryResponse).getResults());
+		
+		 
+		model.addAttribute("Reviews stats ",fieldCounts);
 		return model;
 	
 	}
 
+	@RequestMapping(value="/findAllReviewOnContentOnly" , method=RequestMethod.GET)
+	public ModelMap findAllReviewOnContentOnly(@RequestParam(name = "contentId", required = true) String contentId,
+	@RequestParam(name = "noOfRecords", required = true) 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();
+		Object apiResponse=null;
+		String query="reviewContentId:"+contentId;
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		searchCriteria.put("facet", "true");
+		searchCriteria.put("q.op", "O");
+		searchCriteria.put("facet.field", "reviewRatting");
+		
+	//	searchCriteria.put("fl", "userId");
+	    apiResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+		
+	
+     	// model.putAll(model)
+		 
+	//	model.addAttribute("solr",queryResponse.getResults().toArray());
+	//	model.addAllAttributes(queryResponse.getResults());
+		
+		
+		return model.addAttribute("result",((QueryResponse) apiResponse).getResults());
+
+	}
+	
+	
+	
+	
+	@RequestMapping(value="/findReviewAnalytic" , method=RequestMethod.GET)
+	public ModelMap findReviewAnalytic(@RequestParam(name = "contentId", required = true) String contentId,
+	@RequestParam(name = "noOfRecords", required = true) 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true) int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();	
+		String query="reviewContentId:"+contentId;
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		searchCriteria.put("facet", "true");
+		searchCriteria.put("facet.field", "reviewRatting");
+		
+	//	searchCriteria.put("facet.query", "*:*");
+
+		HttpHeaders headers = new HttpHeaders();		
+	    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+	    headers.set("X-API-Key", "486f334e-f894-46e8-9d72-7800f6ce1bb6");
+	    headers.set("X-USER-ID", "74a1932c-aa62-4ff1-9e75-2f0dbe9e5c57");
+	    HttpEntity <String> entity = new HttpEntity<String>(headers);
+		
+	//	Map<String, String> response2=resttemplate.exchange("http://192.168.1.101:8983/solr/review/select?facet.field=reviewRatting&facet.query=*%3A*&facet.sort=count&facet=true&fl=reviewRatting&q=reviewContentId%3A4&rows=1&start=0",HttpMethod.GET, entity,new ParameterizedTypeReference<Map<String, String>>() {}).getBody();
+
+	//	Map<String, String> response2= commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+		
+	   
+	    
+	    
+	//	searchCriteria.put("fl", "reviewRatting");
+	    QueryResponse queryResponse = null;
+	    List<FacetField>	ff2=null;
+	    
+	   queryResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
+	    
+	   
+	
+	    
+		ff2=	queryResponse.getFacetFields();
+		FacetField	ff=	queryResponse.getFacetField("reviewRatting");
+		
+		
+		
+		
+		Map<String, Long> fieldCounts = new HashMap<>();
+		
+		 List<FacetField> clusterFields =queryResponse.getFacetFields();
+		
+		 long average=0;
+		 List<String> clusterResponse = new ArrayList();
+		 
+			    FacetField clusterFacets = clusterFields.get(0);
+			    for (FacetField.Count clusterCount : clusterFacets.getValues()) {
+			      clusterResponse.add(clusterCount.getName());
+			      clusterCount.getCount();
+			      
+			      fieldCounts.put(clusterCount.getName(), clusterCount.getCount());
+			      average=average+ (clusterCount.getCount()* Integer.parseInt(clusterCount.getName() ));
+			      
+			      System.out.println("-------clusterCount.getCount()-->"+clusterCount.getCount()+"==============clusterCount.getName()========>"+clusterCount.getName());
+			    
+			      System.out.println(average);
+			    }
+			  
+		 
+		 
+		
+		
+		
+		// List<Count> gg=ff2.get(0).getValues();
+		 model.addAttribute("Total Reviews",queryResponse.getResults().getNumFound());
+		model.addAttribute("Reviews stats ",fieldCounts);
+		model.addAttribute("Average Ratting", average>0 ? Math.round(average/queryResponse.getResults().getNumFound()):0);
+	//	model.addAllAttributes(queryResponse.getResults());
+		return model;
+	
+	}
+	
+	@RequestMapping(value="/{reviewContentId}" , method=RequestMethod.GET)
+	public SolrDocument findOneReviewOnContentOnly(@PathVariable(required = false) String reviewContentId,
+	@RequestParam(name = "noOfRecords", required = true, defaultValue = "12") 
+	int noOfRecords, @RequestParam(name = "pageNumber", required = true, defaultValue = "0") int pageNumber
+			) {
+	
+		ModelMap model=new ModelMap();
+		String query="reviewContentId:"+reviewContentId;
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", query);
+		searchCriteria.put("rows", Integer.toString(noOfRecords));
+		searchCriteria.put("start", Integer.toString(pageNumber));
+		QueryResponse queryResponse = commonDocumentService.advanceSearchDocument(searchCriteria, reviewUrl);
+	
+	
+		
+		 
+		
+		// model.putAll(model)
+		 
+		model.addAttribute("solr",queryResponse.getResults().toArray());
+	//	model.addAllAttributes(queryResponse.getResults());
+		return queryResponse.getResults().get(0);
+	
+	}
+	
 	@RequestMapping(value="/add" , method=RequestMethod.POST)
 	public ModelMap reviewsRating(@RequestBody Map<String, Object> payload,HttpServletRequest request, HttpServletResponse response,
 			@RequestHeader(name="X-API-Key", required=true) String apiKey ,
@@ -360,11 +608,15 @@ public class CommentRattingController implements SolrUrls {
 		if(validationResult == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
+			
 			 
 		}else if(validationResult == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 403).build());
 		}
 		
 		String queryContentExits="ID:"+(String)payload.get("reviewContentId");
@@ -378,14 +630,23 @@ public class CommentRattingController implements SolrUrls {
 		if(contentResponse instanceof Exception || reviewExitsResponse instanceof Exception)
 		{
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500)
+					.build());
+			
 			
 		}else if(((QueryResponse) contentResponse).getResults().size() == 0) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return model.addAttribute("Message", new ResponseMessage("No content found to update", "Invalid Content ID"));
+		//	return model.addAttribute("Message", new ResponseMessage("No content found to update, Invalid Content ID", 204));
+			return model.addAttribute("Message", new ResponseMessage.Builder("No content found to update, Invalid Content ID", 204)
+					.build());
+			
 		}else if( ((QueryResponse) reviewExitsResponse).getResults().size() >0 ) {
 			response.setStatus(HttpServletResponse.SC_CONFLICT);
-			return model.addAttribute("Message", new ResponseMessage("User Already added review to the content", "AlreadyExist"));	 
+		//	return model.addAttribute("Message", new ResponseMessage("User Already added review to the content", 403));
+			return model.addAttribute("Message", new ResponseMessage.Builder("User Already added review to the content", 403)
+														.build());
+			
 		}else {
 			String reviewId=Utility.getUniqueId();
 			
@@ -402,10 +663,183 @@ public class CommentRattingController implements SolrUrls {
 			if(contentResponse instanceof Exception || reviewExitsResponse instanceof Exception)
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down, Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down, Internal server error", 500).build());
 				
 			}
-			return model.addAttribute("Message", new ResponseMessage("Review added Sucesfully", "Added",reviewId));	
+		//	return model.addAttribute("Message", new ResponseMessage("Review added Sucesfully", 201,reviewId,"created"));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Review added Sucesfully", 201).withResponseType("created").withID(reviewId).build());
 		}
 		}
+	
+	
+	@RequestMapping(value="/testApi" , method=RequestMethod.POST)
+	public String calltest(
+			@RequestBody Map<String, String> payload
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+
+	//	System.out.println("Ratting world2 ---------->"+(String)payload.get("title"));
+
+	//	System.out.println("Ratting world2 ---------->"+(String)payload.get("content"));
+		
+		Map<String, Object> payload2= new HashMap<String, Object>();
+		
+		payload2.put("id",Utility.getUniqueId());
+		payload2.put("title",(String)payload.get("title"));
+		
+		payload2.put("content","");
+		payload2.put("content_text",payload.get("content"));
+		
+		
+		Object apiResponse =commonDocumentService.addDocumentByTemplate(payload2, sampleUrl);
+		
+		
+		return "gg";
+	
+	}
+	
+	@RequestMapping(value="/listPages" , method=RequestMethod.POST)
+	public ModelMap listPages(
+			@RequestBody Map<String, String> payload , @RequestParam(name = "start") String start, @RequestParam(name = "rows") String rows
+		
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+		ModelMap model=new ModelMap();
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("Query"));
+		
+		System.out.println("ooooooo-----------oooooooooooooo>"+rows);
+		System.out.println("ooooooo-----------oooooooooooooo>"+start);
+		
+
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("title"));
+		
+		Map<String, Object> payload2= new HashMap<String, Object>();
+		
+		payload2.put("id",Utility.getUniqueId());
+		
+		
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		System.out.println("--------Query---->"+"title:*"+payload.get("Query")+"*");
+		System.out.println("--------rows---->"+rows);
+		System.out.println("--------start---->"+start);
+		
+		searchCriteria.put("q", "title:*"+payload.get("Query")+"*");
+		searchCriteria.put("rows", rows);
+		searchCriteria.put("start", start);
+		searchCriteria.put("facet", "true");
+	
+		QueryResponse dd = (QueryResponse)commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, sampleUrl);
+	//	dd.getResults().getNumFound();
+		//	dd.getResults();
+	//	dd.getResponse();
+	//	System.out.print("-4-->"+dd.getResults().getNumFound());
+		
+		
+		System.out.println("------------->"+dd.getResults().toArray());
+
+		System.out.println("-------dd.getResponse()------>"+dd.getResults().getNumFound());
+		
+//		QueryResponse apiResponse =commonDocumentService.addDocumentByTemplate(payload2, "http://192.168.1.104:8983/solr/Solr_sample");
+		model.addAttribute("results",dd.getResults());
+		model.addAttribute("qTime",dd.getQTime());
+		
+		model.addAttribute("totalRecord",dd.getResults().getNumFound());
+		
+		return model;
+	
+	}
+	
+	
+	
+	@RequestMapping(value="/listPagginationPages" , method=RequestMethod.POST)
+	public ModelMap listPages(
+			@RequestBody Map<String, String> payload , @RequestParam(name = "start") String start, @RequestParam(name = "rows") String rows,
+			@RequestParam(value = "q", required = false) String query
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+		ModelMap model=new ModelMap();
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("Query"));
+		
+		System.out.println("ooooooo-----------oooooooooooooo>"+rows);
+		System.out.println("ooooooo-----------oooooooooooooo>"+start);
+		
+
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("title"));
+		
+		Map<String, Object> payload2= new HashMap<String, Object>();
+		
+		payload2.put("id",Utility.getUniqueId());
+		
+		
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", "title:*"+query+"*");
+		searchCriteria.put("rows", rows);
+		searchCriteria.put("start", start);
+		searchCriteria.put("facet", "true");
+	
+		QueryResponse dd = (QueryResponse)commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, sampleUrl);
+	//	dd.getResults().getNumFound();
+		//	dd.getResults();
+	//	dd.getResponse();
+	//	System.out.print("-4-->"+dd.getResults().getNumFound());
+		
+		
+		System.out.println("------------->"+dd.getResults().toArray());
+
+		System.out.println("-------dd.getResponse()------>"+dd.getResults().getNumFound());
+		
+//		QueryResponse apiResponse =commonDocumentService.addDocumentByTemplate(payload2, "http://192.168.1.104:8983/solr/Solr_sample");
+		model.addAttribute("results",dd.getResults());
+		model.addAttribute("qTime",dd.getQTime());
+		
+		model.addAttribute("totalRecord",dd.getResults().getNumFound());
+		
+		return model;
+	
+	}
+	
+	
+	
+	@RequestMapping(value="/getDataByQuery" , method=RequestMethod.POST)
+	public ModelMap getDataByQuery(
+			@RequestBody Map<String, String> payload
+			) {
+	
+	//	System.out.println((String)payload.get("idBrand"));
+	//	System.out.println("Ratting world2 ---------->"+UUID.randomUUID().toString());
+		ModelMap model=new ModelMap();
+		System.out.println("ooooooo-----------oooooooooooooo>"+payload.get("query"));
+			
+		Map<String, String> searchCriteria=new HashMap<String, String>();
+		searchCriteria.put("q", payload.get("query"));
+		searchCriteria.put("rows", Integer.toString(800));
+		searchCriteria.put("start", Integer.toString(0));
+		searchCriteria.put("facet", "true");
+	
+		QueryResponse dd = (QueryResponse)commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, sampleUrl);
+	//	dd.getResults().getNumFound();
+		//	dd.getResults();
+	//	dd.getResponse();
+	//	System.out.print("-4-->"+dd.getResults().getNumFound());
+		
+		
+		System.out.println("------------->"+dd.getResults().toArray());
+		
+//		QueryResponse apiResponse =commonDocumentService.addDocumentByTemplate(payload2, "http://192.168.1.104:8983/solr/Solr_sample");
+		model.addAttribute("results",dd.getResults());
+		
+		return model;
+	
+	}
+	
+	
+	
 }

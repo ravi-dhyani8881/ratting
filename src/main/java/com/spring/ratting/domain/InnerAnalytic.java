@@ -5,7 +5,6 @@ import org.apache.solr.common.SolrDocument;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-
 public class InnerAnalytic {
 	
 	public SolrDocument content;

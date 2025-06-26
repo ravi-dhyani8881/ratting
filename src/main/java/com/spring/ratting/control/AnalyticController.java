@@ -14,7 +14,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,12 +46,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import springfox.documentation.annotations.ApiIgnore;
 
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 
 @Api(value = "Content Mangment System" , description = "This service used to perform operation on Content.")
 @RestController
@@ -86,11 +83,13 @@ public class AnalyticController {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			 return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
 		}
 		try {
 			payload.put("ID", contentId);
@@ -100,14 +99,16 @@ public class AnalyticController {
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
-		return model.addAttribute("Message", new ResponseMessage("Content added Sucesfully", "Added",contentId));
+	//	return model.addAttribute("Message", new ResponseMessage("Content added Sucesfully", 201,contentId,"created"));
+		return model.addAttribute("Message", new ResponseMessage.Builder("Content added Sucesfully", 201).withID(contentId).withResponseType("created").build());
 	}
 	
 	@ApiOperation(value = "This service used to update content")
@@ -122,14 +123,17 @@ public class AnalyticController {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+		//	 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			 return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
 		} else if(!payload.containsKey("ID")) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			 return model.addAttribute("Message", new ResponseMessage("Unique ID missing from request", "Invalid request"));
+		//	 return model.addAttribute("Message", new ResponseMessage("Unique ID missing from request, Invalid request",400));
+			 return model.addAttribute("Message", new ResponseMessage.Builder("Unique ID missing from request", 400).build());
 		}
 		
 		try {
@@ -139,18 +143,23 @@ public class AnalyticController {
 			if(apiResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}else if(((QueryResponse) apiResponse).getResults().size() == 0) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				return model.addAttribute("Message", new ResponseMessage("No Unique ID to update", "Invalid ID"));
+			//	return model.addAttribute("Message", new ResponseMessage("No Unique ID to update, Invalid ID",400 ));
+				return model.addAttribute("Message", new ResponseMessage.Builder("No Unique ID to update, Invalid ID", 400).build());
 			}else {
 				SolrDocument solrDocument = ((QueryResponse) apiResponse).getResults().get(0);
 				apiResponse =commonDocumentService.updateDocumentByTemplate(this.createDoc(payload, solrDocument), contentUrl) ;	
 			}			
-			return model.addAttribute("Message", new ResponseMessage("Content updated Sucesfully", "Added",contentId));
+		//	return model.addAttribute("Message", new ResponseMessage("Content updated Sucesfully", 201,contentId,"sucess"));
+			
+			return model.addAttribute("Message", new ResponseMessage.Builder("Content updated Sucesfully", 201).withID(contentId).withResponseType("sucess").build());
 		}catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error",500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 		}	
 	}
 	
@@ -187,11 +196,13 @@ public class AnalyticController {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			 return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
 		}else {
 		//	query=Utility.getQuery(query, userId);
 			Map<String, String> searchCriteria=new HashMap<String,String>(); 
@@ -213,7 +224,7 @@ public class AnalyticController {
 			 
 			 reviewsResponse = commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, reviewUrl);
 			
-			 searchCriteria.put("q", "{!join from=ID to=contentId fromIndex=content}"+query);
+			 searchCriteria.put("q", "{!join from=ID to=contentId fromIndex=}"+query);
 			 
 			 likeResponse=commonDocumentService.advanceSearchDocumentByTemplate(searchCriteria, likeUrl);
 			 
@@ -226,7 +237,8 @@ public class AnalyticController {
 			 if(contentResponse instanceof Exception )
 			{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}else {
 				
 			//	model.addAttribute("content",((QueryResponse) apiResponse).getResults());
@@ -310,11 +322,13 @@ public class AnalyticController {
 		if(validationService.validateApiKey(apiKey, userId) == 500 )
 		{	
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));
+		//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+			return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			 
 		}else if(validationService.validateApiKey(apiKey, userId) == 401) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			 return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", "Invalid Api key"));
+			// return model.addAttribute("Message", new ResponseMessage("Invalid Api Key", 401));
+			 return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Api Key", 401).build());
 		}
 		
 		Object apiResponse = commonDocumentService.deleteDocumentByTemplate(query,contentUrl);
@@ -323,13 +337,17 @@ public class AnalyticController {
 		{
 			if(((Exception) apiResponse).getMessage().contains("SyntaxError")) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				return model.addAttribute("Message", new ResponseMessage("Invalid Query or SyntaxError", "SyntaxError"));
+			//  	return model.addAttribute("Message", new ResponseMessage("Invalid Query or SyntaxError, SyntaxError", 401));
+				 return model.addAttribute("Message", new ResponseMessage.Builder("Invalid Query or SyntaxError, SyntaxError", 401).build());
+				
 			}else{
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return model.addAttribute("Message", new ResponseMessage("Server down", "Internal server error"));	
+			//	return model.addAttribute("Message", new ResponseMessage("Server down Internal server error", 500));
+				return model.addAttribute("Message", new ResponseMessage.Builder("Server down Internal server error", 500).build());
 			}
 		}
-		return model.addAttribute("Message", new ResponseMessage("Content deleted Sucesfully with Query", "Deleted",query));
+	//	return model.addAttribute("Message", new ResponseMessage("Content deleted Sucesfully with Query", 200,query,"deleted"));
+		 return model.addAttribute("Message", new ResponseMessage.Builder("Content deleted Sucesfully with Query", 200).withQuery(query).withResponseType("deleted").build());
 	}
 	
 	@ApiIgnore

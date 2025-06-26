@@ -5,34 +5,20 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.request.SolrPing;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.restagent.beans.RequestDetails;
 //import com.restagent.controller.Communication;
 //import com.restagent.controller.CommunicationImpl;
 //import com.restagent.util.SolrUrls;
-import com.spring.ratting.util.ResponseMessage;
 import com.spring.ratting.validation.ValidationService;
 
 @Component
@@ -41,7 +27,6 @@ public class RattingInterceptor implements HandlerInterceptor {
 	@Autowired
 	ValidationService validationService;
 	
-	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 //		
@@ -73,7 +58,6 @@ public class RattingInterceptor implements HandlerInterceptor {
 //		}
 	}
 
-	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 
@@ -114,13 +98,12 @@ public class RattingInterceptor implements HandlerInterceptor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Post Handle method is Calling");
+	//	System.out.println("Post Handle method is Calling");
 	}
 
-	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
 			Exception exception) throws Exception {
 
-		System.out.println("Request and Response is completed " + response.toString());
+	//	System.out.println("Request and Response is completed " + response.toString());
 	}
 }
