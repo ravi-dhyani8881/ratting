@@ -2,7 +2,7 @@ package com.spring.ratting.util;
 
 public interface SolrUrls {
 
-	static String solrAnalyticUrl = "http://solr-service:8983/solr/analytic";
+	static String solrAnalyticUrl = "http://solr-service:80/solr/analytic";
 	
 	static String helpFullUrl = "http://solr-service:8983/solr/helpFull";
 	
