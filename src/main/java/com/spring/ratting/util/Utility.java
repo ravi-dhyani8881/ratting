@@ -4,8 +4,6 @@ import java.util.UUID;
 
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.ui.ModelMap;
 
 
@@ -53,14 +51,4 @@ public static void sendEmail(String userActivationKey, String userId) {
 	
 	}
 	
-	
-	
-//	public static void main(String hh[]) {
-//		
-//		Utility.getCurrentDateAndTime();
-//		
-//		System.out.println("------------>"+Utility.getUniqueId());
-//		
-//	}
-
 }
